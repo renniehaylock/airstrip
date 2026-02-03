@@ -1058,9 +1058,17 @@ export default function CashflowModel() {
       >
         <div className="h-full overflow-y-auto bg-gray-50" style={{ width: sidebarWidth }}>
           {/* App Header */}
-          <div className="px-3 py-2 bg-white border-b border-gray-200 flex items-center gap-1">
-            <img src="/airstrip-favicon.png" alt="Airstrip" className="w-4 h-4" />
-            <h1 className="text-lg font-bold text-gray-800">Airstrip</h1>
+          <div className="px-3 py-2 bg-white border-b border-gray-200 flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <img src="/airstrip-favicon.png" alt="Airstrip" className="w-4 h-4" />
+              <h1 className="text-lg font-bold text-gray-800">Airstrip</h1>
+            </div>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="p-1 rounded hover:bg-gray-100 transition-colors"
+            >
+              <PanelLeftClose size={18} className="text-gray-600" />
+            </button>
           </div>
 
           {/* Action Buttons */}
@@ -1666,20 +1674,19 @@ export default function CashflowModel() {
         />
       )}
 
-      {/* Sidebar Toggle Button */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="absolute top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 rounded-r-lg p-1.5 shadow-sm hover:bg-gray-50 transition-all duration-300"
-        style={{ left: sidebarOpen ? sidebarWidth : 0 }}
-      >
-        {sidebarOpen ? <PanelLeftClose size={18} className="text-gray-600" /> : <PanelLeftOpen size={18} className="text-gray-600" />}
-      </button>
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-auto">
         {/* Header Bar */}
         <div className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
           <div className="flex items-center text-sm">
+            {!sidebarOpen && (
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="p-1 rounded hover:bg-gray-100 transition-colors mr-2"
+              >
+                <PanelLeftOpen size={18} className="text-gray-600" />
+              </button>
+            )}
             <span className="text-gray-600">Dashboard</span>
             {currentScenarioName && (
               <>
