@@ -1875,6 +1875,15 @@ export default function CashflowModel() {
             </div>
           </div>
           <div className="p-4" onClick={(e) => e.stopPropagation()}>
+            {(() => {
+              // Calculate effective Y-axis domain - only apply limits if data exceeds them
+              const metricValues = calculations.map(d => d[selectedChartMetric]);
+              const dataMin = Math.min(...metricValues);
+              const dataMax = Math.max(...metricValues);
+              const effectiveYMin = (state.chartYMin !== null && dataMin < state.chartYMin) ? state.chartYMin : 'auto';
+              const effectiveYMax = (state.chartYMax !== null && dataMax > state.chartYMax) ? state.chartYMax : 'auto';
+
+              return (
             <ResponsiveContainer width="100%" height={400}>
               <BarChart
                   data={calculations}
@@ -1896,7 +1905,7 @@ export default function CashflowModel() {
                   }}
                 >
                 <XAxis dataKey="month" tick={{ fontSize: 10 }} interval={0} angle={-45} textAnchor="end" height={60} />
-                <YAxis tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} tick={{ fontSize: 11 }} domain={[state.chartYMin ?? 'auto', state.chartYMax ?? 'auto']} allowDataOverflow={true} />
+                <YAxis tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} tick={{ fontSize: 11 }} domain={[effectiveYMin, effectiveYMax]} allowDataOverflow={true} />
                 <Tooltip content={<CustomTooltip selectedMetric={selectedChartMetric} metricConfig={chartMetrics} />} cursor={{ fill: '#F3F4F6', fillOpacity: 1 }} />
                 <ReferenceLine y={0} stroke="#9CA3AF" />
                 <Bar
@@ -1921,6 +1930,8 @@ export default function CashflowModel() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+              );
+            })()}
           </div>
         </div>
 
