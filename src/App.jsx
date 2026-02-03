@@ -1456,7 +1456,7 @@ export default function CashflowModel() {
 
                 {/* Owner's Draw */}
                 <SidebarBox
-                  title="Owner's Draw (by month)"
+                  title="Recurring Owner's Draw"
                   section="ownersDraw"
                   badge={hiddenCounts.ownersDraw}
                   expanded={expandedSections.ownersDraw}
@@ -1473,18 +1473,12 @@ export default function CashflowModel() {
                         onRemove={() => removeArrayItem('ownersDraw', exp.id)}
                         fields={[
                           { key: 'category', type: 'text', className: 'flex-1' },
-                          {
-                            key: 'month',
-                            type: 'select',
-                            options: monthLabels.map((label, i) => ({ value: i, label })),
-                            parse: v => parseInt(v)
-                          },
                           { key: 'amount', type: 'number', prefix: '$', className: 'w-20', parse: v => parseFloat(v) || 0 },
                         ]}
                       />
                     ))}
                     <button
-                      onClick={() => addArrayItem('ownersDraw', { category: 'New Draw', month: 0, amount: 0 })}
+                      onClick={() => addArrayItem('ownersDraw', { category: 'New Draw', amount: 0 })}
                       className="flex items-center gap-1 text-blue-500 hover:text-blue-700 text-xs"
                     >
                       <Plus size={12} /> Add Draw
