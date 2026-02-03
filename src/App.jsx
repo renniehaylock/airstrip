@@ -236,8 +236,8 @@ const EmployeeRow = ({ item, onUpdate, onToggleHidden, onRemove, monthLabels }) 
   );
 };
 
-const SectionHeader = ({ title, section, icon: Icon, badge, expanded, onToggle, onCollapseAll, onExpandAll }) => (
-  <div className={`flex border-b border-gray-200 bg-white px-3 text-sm items-center gap-2 w-full font-semibold text-gray-700 py-2`}>
+const SectionHeader = ({ title, hoverBackgroundColor = 'hover:bg-gray-50', section, icon: Icon, badge, expanded, onToggle, onCollapseAll, onExpandAll }) => (
+  <div className={`flex border-b border-gray-200 bg-white ${hoverBackgroundColor} px-3 text-sm items-center gap-2 w-full font-semibold text-gray-700 py-2`}>
     <button
       onClick={() => onToggle(section)}
       className="flex items-center gap-2 flex-1 text-left hover:text-gray-900"
@@ -528,6 +528,7 @@ export default function CashflowModel() {
   const [newScenarioName, setNewScenarioName] = useState('');
   const [showScenarioModal, setShowScenarioModal] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [activeBarIndex, setActiveBarIndex] = useState(null);
 
   // Local state for inputs (update on blur to prevent graph jitter)
   const [localInputs, setLocalInputs] = useState({
@@ -1061,7 +1062,7 @@ export default function CashflowModel() {
 
           {/* Inflows Panel */}
           <div>
-            <SectionHeader title="Inflows" section="inflows" icon={TrendingUp} expanded={expandedSections.inflows} onToggle={toggleSection} onCollapseAll={collapseAllInflows} onExpandAll={expandAllInflows} />
+            <SectionHeader title="Inflows" hoverBackgroundColor="hover:bg-green-50" section="inflows" icon={TrendingUp} expanded={expandedSections.inflows} onToggle={toggleSection} onCollapseAll={collapseAllInflows} onExpandAll={expandAllInflows} />
             {expandedSections.inflows && (
               <div className="space-y-2 p-2.5 bg-gray-50 border-b border-gray-200">
                 {/* Initial Cash */}
@@ -1098,7 +1099,7 @@ export default function CashflowModel() {
                       prefix="$"
                     />
                     <InputField
-                      label="ARPU"
+                      label="Monthly ARPU"
                       value={localInputs.arpu}
                       onChange={(v) => handleLocalInputChange('arpu', v)}
                       onBlur={() => handleLocalInputBlur('arpu')}
@@ -1138,7 +1139,7 @@ export default function CashflowModel() {
 
                 {/* Additional Revenue */}
                 <SidebarBox
-                  title="Additional Revenue"
+                  title="Other Recurring Revenue"
                   section="additionalRevenue"
                   expanded={expandedSections.additionalRevenue}
                   onToggle={toggleSection}
@@ -1153,7 +1154,7 @@ export default function CashflowModel() {
                       prefix="$"
                     />
                     <InputField
-                      label="Growth"
+                      label="Growth (Decrease)"
                       value={localInputs.additionalRevenueGrowth}
                       onChange={(v) => handleLocalInputChange('additionalRevenueGrowth', v)}
                       onBlur={() => handleLocalInputBlur('additionalRevenueGrowth')}
@@ -1243,7 +1244,7 @@ export default function CashflowModel() {
 
           {/* Outflows Panel */}
           <div>
-            <SectionHeader title="Outflows" section="outflows" icon={CreditCard} expanded={expandedSections.outflows} onToggle={toggleSection} onCollapseAll={collapseAllOutflows} onExpandAll={expandAllOutflows} />
+            <SectionHeader title="Outflows" hoverBackgroundColor="hover:bg-red-50" section="outflows" icon={CreditCard} expanded={expandedSections.outflows} onToggle={toggleSection} onCollapseAll={collapseAllOutflows} onExpandAll={expandAllOutflows} />
             {expandedSections.outflows && (
               <div className="space-y-2 p-3 bg-gray-50">
                 {/* Payroll */}
@@ -1648,18 +1649,32 @@ export default function CashflowModel() {
           </div>
           <div className="p-4">
             <ResponsiveContainer width="100%" height={400}>
-              <BarChart data={calculations} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
-                <XAxis dataKey="month" tick={{ fontSize: 10 }} interval={1} angle={-45} textAnchor="end" height={60} />
+              <BarChart
+                  data={calculations}
+                  margin={{ top: 10, right: 10, left: -10, bottom: -10 }}
+                  onMouseMove={(state) => state.activeTooltipIndex !== undefined && setActiveBarIndex(state.activeTooltipIndex)}
+                  onMouseLeave={() => setActiveBarIndex(null)}
+                >
+                <XAxis dataKey="month" tick={{ fontSize: 10 }} interval={0} angle={-45} textAnchor="end" height={60} />
                 <YAxis tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} tick={{ fontSize: 11 }} domain={[-50000, 'dataMax']} allowDataOverflow={true} />
-                <Tooltip content={<CustomTooltip />} />
-                <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="3 3" />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: '#F3F4F6', fillOpacity: 1 }} />
+                <ReferenceLine y={0} stroke="#9CA3AF" />
                 <Bar
                   dataKey="cashBalance"
                   radius={[4, 4, 0, 0]}
                 >
-                  {calculations.map((entry, index) => (
-                    <Cell key={index} fill={entry.cashBalance >= 0 ? '#22c55e' : '#ef4444'} />
-                  ))}
+                  {calculations.map((entry, index) => {
+                    const isHovered = index === activeBarIndex;
+                    const baseGreen = '#22c55e';
+                    const hoverGreen = '#16a34a';
+                    const baseRed = '#ef4444';
+                    const hoverRed = '#dc2626';
+                    const isPositive = entry.cashBalance >= 0;
+                    const fill = isPositive
+                      ? (isHovered ? hoverGreen : baseGreen)
+                      : (isHovered ? hoverRed : baseRed);
+                    return <Cell key={index} fill={fill} />;
+                  })}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
