@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from 'recharts';
-import { Plus, Trash2, ChevronDown, ChevronRight, TrendingUp, Users, CreditCard, Save, FolderOpen, Eye, EyeOff, X, Link, Check, PanelLeftClose, PanelLeftOpen, ChevronUp, Info, Pencil } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, TrendingUp, Users, CreditCard, Save, FolderOpen, Eye, EyeOff, X, Link, Check, PanelLeftClose, PanelLeftOpen, ChevronUp, Info, Pencil, Settings } from 'lucide-react';
 
 const STORAGE_KEY = 'cashflow-scenarios';
 
@@ -349,6 +349,10 @@ const encodeState = (state) => {
   params.set('o4k', JSON.stringify(state.owners401k.map(e => ({ c: e.category, m: e.month, a: e.amount, h: e.hidden ? 1 : 0 }))));
   params.set('etx', JSON.stringify(state.estimatedTaxes.map(e => ({ d: e.description, m: e.month, a: e.amount, h: e.hidden ? 1 : 0 }))));
 
+  // Chart settings
+  if (state.chartYMin !== null) params.set('cymin', state.chartYMin);
+  if (state.chartYMax !== null) params.set('cymax', state.chartYMax);
+
   return params.toString();
 };
 
@@ -453,6 +457,10 @@ const decodeState = (search, defaultState) => {
       state.estimatedTaxes = etx.map((e, i) => ({ id: i + 1, description: e.d, month: e.m, amount: e.a, hidden: !!e.h }));
     }
 
+    // Chart settings
+    if (params.has('cymin')) state.chartYMin = parseFloat(params.get('cymin'));
+    if (params.has('cymax')) state.chartYMax = parseFloat(params.get('cymax'));
+
     return state;
   } catch (e) {
     console.error('Failed to decode URL state:', e);
@@ -514,6 +522,9 @@ export default function CashflowModel() {
       { id: 3, description: 'Q3 Estimated Tax', month: 8, amount: 0, hidden: false },
       { id: 4, description: 'Q4 Estimated Tax', month: 11, amount: 0, hidden: false },
     ],
+    // Chart settings
+    chartYMin: null,
+    chartYMax: null,
   });
 
   // Initialize state from URL or defaults
@@ -638,6 +649,7 @@ export default function CashflowModel() {
   const [expandedSections, setExpandedSections] = useState({
     inflows: true,
     outflows: true,
+    settings: false,
     initialCash: false,
     mrr: false,
     additionalRevenue: false,
@@ -651,6 +663,7 @@ export default function CashflowModel() {
     estimatedTaxes: false,
     capitalInjections: false,
     annualPlanRevenue: false,
+    chartSettings: false,
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(500);
@@ -1319,7 +1332,7 @@ export default function CashflowModel() {
           <div>
             <SectionHeader title="Outflows" hoverBackgroundColor="hover:bg-red-50" section="outflows" icon={CreditCard} expanded={expandedSections.outflows} onToggle={toggleSection} onCollapseAll={collapseAllOutflows} onExpandAll={expandAllOutflows} />
             {expandedSections.outflows && (
-              <div className="space-y-2 p-3 bg-gray-50">
+              <div className="space-y-2 p-3 bg-gray-50 border-b border-gray-200">
                 {/* Payroll */}
                 <SidebarBox
                   title="Payroll"
@@ -1594,6 +1607,53 @@ export default function CashflowModel() {
               </div>
             )}
           </div>
+
+          {/* Settings Panel */}
+          <div>
+            <SectionHeader title="Settings" hoverBackgroundColor="hover:bg-gray-100" section="settings" icon={Settings} expanded={expandedSections.settings} onToggle={toggleSection} />
+            {expandedSections.settings && (
+              <div className="space-y-2 p-3 bg-gray-50">
+                {/* Chart Settings */}
+                <SidebarBox
+                  title="Chart Settings"
+                  section="chartSettings"
+                  expanded={expandedSections.chartSettings}
+                  onToggle={toggleSection}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-gray-600 w-20">Min Y Value</label>
+                      <input
+                        type="number"
+                        value={state.chartYMin ?? ''}
+                        onChange={(e) => updateState('chartYMin', e.target.value === '' ? null : parseFloat(e.target.value))}
+                        placeholder="Auto"
+                        className="flex-1 px-2 py-1 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-gray-600 w-20">Max Y Value</label>
+                      <input
+                        type="number"
+                        value={state.chartYMax ?? ''}
+                        onChange={(e) => updateState('chartYMax', e.target.value === '' ? null : parseFloat(e.target.value))}
+                        placeholder="Auto"
+                        className="flex-1 px-2 py-1 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                    {(state.chartYMin !== null || state.chartYMax !== null) && (
+                      <button
+                        onClick={() => { updateState('chartYMin', null); updateState('chartYMax', null); }}
+                        className="text-xs text-blue-500 hover:text-blue-700"
+                      >
+                        Reset to Auto
+                      </button>
+                    )}
+                  </div>
+                </SidebarBox>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1836,7 +1896,7 @@ export default function CashflowModel() {
                   }}
                 >
                 <XAxis dataKey="month" tick={{ fontSize: 10 }} interval={0} angle={-45} textAnchor="end" height={60} />
-                <YAxis tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} tick={{ fontSize: 11 }} domain={['auto', 'auto']} allowDataOverflow={true} />
+                <YAxis tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} tick={{ fontSize: 11 }} domain={[state.chartYMin ?? 'auto', state.chartYMax ?? 'auto']} allowDataOverflow={true} />
                 <Tooltip content={<CustomTooltip selectedMetric={selectedChartMetric} metricConfig={chartMetrics} />} cursor={{ fill: '#F3F4F6', fillOpacity: 1 }} />
                 <ReferenceLine y={0} stroke="#9CA3AF" />
                 <Bar
