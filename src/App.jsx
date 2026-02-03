@@ -297,15 +297,20 @@ const SidebarBox = ({ title, section, icon, badge, expanded, onToggle, children,
   </div>
 );
 
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, selectedMetric, metricConfig }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+    const metric = metricConfig?.[selectedMetric];
+    const value = data[selectedMetric];
     return (
       <div className="bg-white p-3 border rounded shadow-lg text-sm">
         <p className="font-semibold mb-2">{label}</p>
-        <p className="text-green-600">Inflows: {formatCurrency(data.totalInflows)}</p>
-        <p className="text-red-600">Outflows: {formatCurrency(data.totalOutflows)}</p>
-        <p className="text-blue-600 font-semibold">Balance: {formatCurrency(data.cashBalance)}</p>
+        <p style={{ color: metric?.type === 'outflow' ? '#dc2626' : (metric?.type === 'inflow' ? '#16a34a' : (value >= 0 ? '#16a34a' : '#dc2626')) }} className="font-semibold">
+          {metric?.label}: {formatCurrency(value)}
+        </p>
+        {selectedMetric !== 'cashBalance' && (
+          <p className="text-gray-500 text-xs mt-1">Balance: {formatCurrency(data.cashBalance)}</p>
+        )}
       </div>
     );
   }
@@ -535,7 +540,31 @@ export default function CashflowModel() {
   const [linkCopied, setLinkCopied] = useState(false);
   const [activeBarIndex, setActiveBarIndex] = useState(null);
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(null);
+  const [selectedChartMetric, setSelectedChartMetric] = useState('cashBalance');
   const tableContainerRef = useRef(null);
+
+  // Chart metric configuration
+  const chartMetrics = {
+    // Inflows (green)
+    mrr: { label: 'MRR', color: '#22c55e', hoverColor: '#16a34a', type: 'inflow' },
+    additionalRevenue: { label: 'Additional Revenue', color: '#22c55e', hoverColor: '#16a34a', type: 'inflow' },
+    annualPlanRevenue: { label: 'Annual Plan Revenue', color: '#22c55e', hoverColor: '#16a34a', type: 'inflow' },
+    capitalInjection: { label: 'Capital Injection', color: '#22c55e', hoverColor: '#16a34a', type: 'inflow' },
+    totalInflows: { label: 'Total Inflows', color: '#22c55e', hoverColor: '#16a34a', type: 'inflow' },
+    // Outflows (red)
+    payroll: { label: 'Payroll (All-In)', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
+    recurringExpenses: { label: 'Recurring Expenses', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
+    oneTimeExpenses: { label: 'One-Time Expenses', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
+    variableExpenses: { label: 'Variable Expenses', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
+    refunds: { label: 'Refunds', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
+    estimatedTaxes: { label: 'Estimated Taxes', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
+    ownersDraw: { label: "Owner's Draw", color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
+    owners401k: { label: "Owner's 401k", color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
+    totalOutflows: { label: 'Total Outflows', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
+    // Summary (dynamic colors)
+    netCashflow: { label: 'Net Cashflow', color: '#22c55e', hoverColor: '#16a34a', negColor: '#ef4444', negHoverColor: '#dc2626', type: 'dynamic' },
+    cashBalance: { label: 'Cash Balance', color: '#22c55e', hoverColor: '#16a34a', negColor: '#ef4444', negHoverColor: '#dc2626', type: 'dynamic' },
+  };
 
   // Local state for inputs (update on blur to prevent graph jitter)
   const [localInputs, setLocalInputs] = useState({
@@ -1746,16 +1775,43 @@ export default function CashflowModel() {
         {/* Chart Section */}
         <div className="bg-white rounded-lg shadow-sm mb-4 border border-gray-200">
           <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-700">Cash Balance Forecast</h2>
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${
+                selectedChartMetric === 'totalInflows' ? 'bg-green-700' :
+                selectedChartMetric === 'totalOutflows' ? 'bg-red-700' :
+                selectedChartMetric === 'netCashflow' ? 'bg-gray-700' :
+                selectedChartMetric === 'cashBalance' ? 'bg-blue-700' :
+                chartMetrics[selectedChartMetric]?.type === 'inflow' ? 'bg-green-600' :
+                chartMetrics[selectedChartMetric]?.type === 'outflow' ? 'bg-red-600' : 'bg-blue-700'
+              }`}></div>
+              <h2 className="text-sm font-semibold text-gray-700">{chartMetrics[selectedChartMetric]?.label || 'Cash Balance'} Forecast</h2>
+              {selectedChartMetric !== 'cashBalance' && (
+                <button
+                  onClick={() => setSelectedChartMetric('cashBalance')}
+                  className="text-xs text-blue-500 hover:text-blue-700"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
             <div className="flex gap-3 text-xs">
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-green-500 rounded"></div>
-                <span>Positive</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-red-500 rounded"></div>
-                <span>Negative</span>
-              </div>
+              {chartMetrics[selectedChartMetric]?.type === 'dynamic' ? (
+                <>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-green-500 rounded"></div>
+                    <span>Positive</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-red-500 rounded"></div>
+                    <span>Negative</span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded" style={{ backgroundColor: chartMetrics[selectedChartMetric]?.color }}></div>
+                  <span>{chartMetrics[selectedChartMetric]?.type === 'inflow' ? 'Inflow' : 'Outflow'}</span>
+                </div>
+              )}
             </div>
           </div>
           <div className="p-4" onClick={(e) => e.stopPropagation()}>
@@ -1780,23 +1836,26 @@ export default function CashflowModel() {
                   }}
                 >
                 <XAxis dataKey="month" tick={{ fontSize: 10 }} interval={0} angle={-45} textAnchor="end" height={60} />
-                <YAxis tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} tick={{ fontSize: 11 }} domain={[-50000, 'dataMax']} allowDataOverflow={true} />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: '#F3F4F6', fillOpacity: 1 }} />
+                <YAxis tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} tick={{ fontSize: 11 }} domain={['auto', 'auto']} allowDataOverflow={true} />
+                <Tooltip content={<CustomTooltip selectedMetric={selectedChartMetric} metricConfig={chartMetrics} />} cursor={{ fill: '#F3F4F6', fillOpacity: 1 }} />
                 <ReferenceLine y={0} stroke="#9CA3AF" />
                 <Bar
-                  dataKey="cashBalance"
+                  dataKey={selectedChartMetric}
                   radius={[4, 4, 0, 0]}
                 >
                   {calculations.map((entry, index) => {
                     const isHovered = index === activeBarIndex;
-                    const baseGreen = '#22c55e';
-                    const hoverGreen = '#16a34a';
-                    const baseRed = '#ef4444';
-                    const hoverRed = '#dc2626';
-                    const isPositive = entry.cashBalance >= 0;
-                    const fill = isPositive
-                      ? (isHovered ? hoverGreen : baseGreen)
-                      : (isHovered ? hoverRed : baseRed);
+                    const metric = chartMetrics[selectedChartMetric];
+                    const value = entry[selectedChartMetric];
+                    let fill;
+                    if (metric?.type === 'dynamic') {
+                      const isPositive = value >= 0;
+                      fill = isPositive
+                        ? (isHovered ? metric.hoverColor : metric.color)
+                        : (isHovered ? metric.negHoverColor : metric.negColor);
+                    } else {
+                      fill = isHovered ? metric?.hoverColor : metric?.color;
+                    }
                     return <Cell key={index} fill={fill} />;
                   })}
                 </Bar>
@@ -1826,34 +1885,34 @@ export default function CashflowModel() {
                 <td className="py-2 px-1 font-semibold text-green-700 sticky left-0 z-10 relative bg-green-50 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">INFLOWS</td>
                 {calculations.map((_, i) => <td key={i} className={i === selectedMonthIndex ? 'bg-green-600' : ''}></td>)}
               </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">MRR</td>
+              <tr className={selectedChartMetric === 'mrr' ? 'bg-green-600' : 'hover:bg-gray-50'}>
+                <td onClick={() => setSelectedChartMetric('mrr')} className={`py-1 px-1 pl-4 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'mrr' ? 'bg-green-600 text-white' : 'bg-white hover:text-blue-600'}`}>MRR</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600'}`}>{formatCurrency(d.mrr)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${selectedChartMetric === 'mrr' ? (i === selectedMonthIndex ? 'bg-green-700 text-white' : 'bg-green-600 text-white') : (i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600')}`}>{formatCurrency(d.mrr)}</td>
                 ))}
               </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Additional Revenue</td>
+              <tr className={selectedChartMetric === 'additionalRevenue' ? 'bg-green-600' : 'hover:bg-gray-50'}>
+                <td onClick={() => setSelectedChartMetric('additionalRevenue')} className={`py-1 px-1 pl-4 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'additionalRevenue' ? 'bg-green-600 text-white' : 'bg-white hover:text-blue-600'}`}>Additional Revenue</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600'}`}>{formatCurrency(d.additionalRevenue)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${selectedChartMetric === 'additionalRevenue' ? (i === selectedMonthIndex ? 'bg-green-700 text-white' : 'bg-green-600 text-white') : (i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600')}`}>{formatCurrency(d.additionalRevenue)}</td>
                 ))}
               </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Annual Plan Revenue</td>
+              <tr className={selectedChartMetric === 'annualPlanRevenue' ? 'bg-green-600' : 'hover:bg-gray-50'}>
+                <td onClick={() => setSelectedChartMetric('annualPlanRevenue')} className={`py-1 px-1 pl-4 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'annualPlanRevenue' ? 'bg-green-600 text-white' : 'bg-white hover:text-blue-600'}`}>Annual Plan Revenue</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600'}`}>{d.annualPlanRevenue ? formatCurrency(d.annualPlanRevenue) : '-'}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${selectedChartMetric === 'annualPlanRevenue' ? (i === selectedMonthIndex ? 'bg-green-700 text-white' : 'bg-green-600 text-white') : (i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600')}`}>{d.annualPlanRevenue ? formatCurrency(d.annualPlanRevenue) : '-'}</td>
                 ))}
               </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Capital Injection</td>
+              <tr className={selectedChartMetric === 'capitalInjection' ? 'bg-green-600' : 'hover:bg-gray-50'}>
+                <td onClick={() => setSelectedChartMetric('capitalInjection')} className={`py-1 px-1 pl-4 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'capitalInjection' ? 'bg-green-600 text-white' : 'bg-white hover:text-blue-600'}`}>Capital Injection</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600'}`}>{d.capitalInjection ? formatCurrency(d.capitalInjection) : '-'}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${selectedChartMetric === 'capitalInjection' ? (i === selectedMonthIndex ? 'bg-green-700 text-white' : 'bg-green-600 text-white') : (i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600')}`}>{d.capitalInjection ? formatCurrency(d.capitalInjection) : '-'}</td>
                 ))}
               </tr>
-              <tr className="bg-green-100 font-semibold">
-                <td className="py-1 px-1 sticky left-0 z-10 relative bg-green-100 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Total Inflows</td>
+              <tr className={`font-semibold ${selectedChartMetric === 'totalInflows' ? 'bg-green-700' : 'bg-green-100'}`}>
+                <td onClick={() => setSelectedChartMetric('totalInflows')} className={`py-1 px-1 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'totalInflows' ? 'bg-green-700 text-white' : 'bg-green-100 hover:text-blue-600'}`}>Total Inflows</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-green-700 text-white' : 'text-green-700'}`}>{formatCurrency(d.totalInflows)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${selectedChartMetric === 'totalInflows' ? (i === selectedMonthIndex ? 'bg-green-800 text-white' : 'bg-green-700 text-white') : (i === selectedMonthIndex ? 'bg-green-700 text-white' : 'text-green-700')}`}>{formatCurrency(d.totalInflows)}</td>
                 ))}
               </tr>
 
@@ -1862,74 +1921,74 @@ export default function CashflowModel() {
                 <td className="py-2 px-1 font-semibold text-red-700 sticky left-0 z-10 relative bg-red-50 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">OUTFLOWS</td>
                 {calculations.map((_, i) => <td key={i} className={i === selectedMonthIndex ? 'bg-red-600' : ''}></td>)}
               </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Payroll (All-In)</td>
+              <tr className={selectedChartMetric === 'payroll' ? 'bg-red-600' : 'hover:bg-gray-50'}>
+                <td onClick={() => setSelectedChartMetric('payroll')} className={`py-1 px-1 pl-4 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'payroll' ? 'bg-red-600 text-white' : 'bg-white hover:text-blue-600'}`}>Payroll (All-In)</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{formatCurrency(d.payroll)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${selectedChartMetric === 'payroll' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{formatCurrency(d.payroll)}</td>
                 ))}
               </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Recurring Expenses</td>
+              <tr className={selectedChartMetric === 'recurringExpenses' ? 'bg-red-600' : 'hover:bg-gray-50'}>
+                <td onClick={() => setSelectedChartMetric('recurringExpenses')} className={`py-1 px-1 pl-4 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'recurringExpenses' ? 'bg-red-600 text-white' : 'bg-white hover:text-blue-600'}`}>Recurring Expenses</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{formatCurrency(d.recurringExpenses)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${selectedChartMetric === 'recurringExpenses' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{formatCurrency(d.recurringExpenses)}</td>
                 ))}
               </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">One-Time Expenses</td>
+              <tr className={selectedChartMetric === 'oneTimeExpenses' ? 'bg-red-600' : 'hover:bg-gray-50'}>
+                <td onClick={() => setSelectedChartMetric('oneTimeExpenses')} className={`py-1 px-1 pl-4 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'oneTimeExpenses' ? 'bg-red-600 text-white' : 'bg-white hover:text-blue-600'}`}>One-Time Expenses</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{d.oneTimeExpenses ? formatCurrency(d.oneTimeExpenses) : '-'}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${selectedChartMetric === 'oneTimeExpenses' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{d.oneTimeExpenses ? formatCurrency(d.oneTimeExpenses) : '-'}</td>
                 ))}
               </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Variable Expenses</td>
+              <tr className={selectedChartMetric === 'variableExpenses' ? 'bg-red-600' : 'hover:bg-gray-50'}>
+                <td onClick={() => setSelectedChartMetric('variableExpenses')} className={`py-1 px-1 pl-4 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'variableExpenses' ? 'bg-red-600 text-white' : 'bg-white hover:text-blue-600'}`}>Variable Expenses</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{formatCurrency(d.variableExpenses)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${selectedChartMetric === 'variableExpenses' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{formatCurrency(d.variableExpenses)}</td>
                 ))}
               </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Refunds</td>
+              <tr className={selectedChartMetric === 'refunds' ? 'bg-red-600' : 'hover:bg-gray-50'}>
+                <td onClick={() => setSelectedChartMetric('refunds')} className={`py-1 px-1 pl-4 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'refunds' ? 'bg-red-600 text-white' : 'bg-white hover:text-blue-600'}`}>Refunds</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{formatCurrency(d.refunds)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${selectedChartMetric === 'refunds' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{formatCurrency(d.refunds)}</td>
                 ))}
               </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Estimated Taxes</td>
+              <tr className={selectedChartMetric === 'estimatedTaxes' ? 'bg-red-600' : 'hover:bg-gray-50'}>
+                <td onClick={() => setSelectedChartMetric('estimatedTaxes')} className={`py-1 px-1 pl-4 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'estimatedTaxes' ? 'bg-red-600 text-white' : 'bg-white hover:text-blue-600'}`}>Estimated Taxes</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{d.estimatedTaxes ? formatCurrency(d.estimatedTaxes) : '-'}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${selectedChartMetric === 'estimatedTaxes' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{d.estimatedTaxes ? formatCurrency(d.estimatedTaxes) : '-'}</td>
                 ))}
               </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Owner's Draw</td>
+              <tr className={selectedChartMetric === 'ownersDraw' ? 'bg-red-600' : 'hover:bg-gray-50'}>
+                <td onClick={() => setSelectedChartMetric('ownersDraw')} className={`py-1 px-1 pl-4 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'ownersDraw' ? 'bg-red-600 text-white' : 'bg-white hover:text-blue-600'}`}>Owner's Draw</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{formatCurrency(d.ownersDraw)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${selectedChartMetric === 'ownersDraw' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{formatCurrency(d.ownersDraw)}</td>
                 ))}
               </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Owner's 401k</td>
+              <tr className={selectedChartMetric === 'owners401k' ? 'bg-red-600' : 'hover:bg-gray-50'}>
+                <td onClick={() => setSelectedChartMetric('owners401k')} className={`py-1 px-1 pl-4 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'owners401k' ? 'bg-red-600 text-white' : 'bg-white hover:text-blue-600'}`}>Owner's 401k</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{d.owners401k ? formatCurrency(d.owners401k) : '-'}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${selectedChartMetric === 'owners401k' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{d.owners401k ? formatCurrency(d.owners401k) : '-'}</td>
                 ))}
               </tr>
-              <tr className="bg-red-100 font-semibold">
-                <td className="py-1 px-1 sticky left-0 z-10 relative bg-red-100 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Total Outflows</td>
+              <tr className={`font-semibold ${selectedChartMetric === 'totalOutflows' ? 'bg-red-700' : 'bg-red-100'}`}>
+                <td onClick={() => setSelectedChartMetric('totalOutflows')} className={`py-1 px-1 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'totalOutflows' ? 'bg-red-700 text-white' : 'bg-red-100 hover:text-blue-600'}`}>Total Outflows</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-700 text-white' : 'text-red-700'}`}>{formatCurrency(d.totalOutflows)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${selectedChartMetric === 'totalOutflows' ? (i === selectedMonthIndex ? 'bg-red-800 text-white' : 'bg-red-700 text-white') : (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'text-red-700')}`}>{formatCurrency(d.totalOutflows)}</td>
                 ))}
               </tr>
 
               {/* Summary */}
-              <tr className="bg-gray-100">
-                <td className="py-2 px-1 font-semibold sticky left-0 z-10 relative bg-gray-100 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Net Cashflow</td>
+              <tr className={`font-semibold ${selectedChartMetric === 'netCashflow' ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                <td onClick={() => setSelectedChartMetric('netCashflow')} className={`py-2 px-1 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'netCashflow' ? 'bg-gray-700 text-white' : 'bg-gray-100 hover:text-blue-600'}`}>Net Cashflow</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-2 px-1 font-semibold ${i === selectedMonthIndex ? (d.netCashflow >= 0 ? 'bg-green-700 text-white' : 'bg-red-700 text-white') : (d.netCashflow >= 0 ? 'text-green-700' : 'text-red-700')}`}>
+                  <td key={i} className={`text-center py-2 px-1 font-semibold ${selectedChartMetric === 'netCashflow' ? (i === selectedMonthIndex ? 'bg-gray-800 text-white' : 'bg-gray-700 text-white') : (i === selectedMonthIndex ? (d.netCashflow >= 0 ? 'bg-green-700 text-white' : 'bg-red-700 text-white') : (d.netCashflow >= 0 ? 'text-green-700' : 'text-red-700'))}`}>
                     {formatCurrency(d.netCashflow)}
                   </td>
                 ))}
               </tr>
-              <tr className="bg-blue-100">
-                <td className="py-2 px-1 font-bold sticky left-0 z-10 relative bg-blue-100 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Cash Balance</td>
+              <tr className={`font-bold ${selectedChartMetric === 'cashBalance' ? 'bg-blue-700' : 'bg-blue-100'}`}>
+                <td onClick={() => setSelectedChartMetric('cashBalance')} className={`py-2 px-1 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'cashBalance' ? 'bg-blue-700 text-white' : 'bg-blue-100 hover:text-blue-600'}`}>Cash Balance</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-2 px-1 font-bold ${i === selectedMonthIndex ? (d.cashBalance >= 0 ? 'bg-blue-700 text-white' : 'bg-red-700 text-white') : (d.cashBalance >= 0 ? 'text-blue-700' : 'text-red-700')}`}>
+                  <td key={i} className={`text-center py-2 px-1 font-bold ${selectedChartMetric === 'cashBalance' ? (i === selectedMonthIndex ? 'bg-blue-800 text-white' : 'bg-blue-700 text-white') : (i === selectedMonthIndex ? (d.cashBalance >= 0 ? 'bg-blue-700 text-white' : 'bg-red-700 text-white') : (d.cashBalance >= 0 ? 'text-blue-700' : 'text-red-700'))}`}>
                     {formatCurrency(d.cashBalance)}
                   </td>
                 ))}
