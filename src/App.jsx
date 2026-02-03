@@ -529,6 +529,8 @@ export default function CashflowModel() {
   const [showScenarioModal, setShowScenarioModal] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [activeBarIndex, setActiveBarIndex] = useState(null);
+  const [selectedMonthIndex, setSelectedMonthIndex] = useState(null);
+  const tableContainerRef = useRef(null);
 
   // Local state for inputs (update on blur to prevent graph jitter)
   const [localInputs, setLocalInputs] = useState({
@@ -964,7 +966,7 @@ export default function CashflowModel() {
   }, [state, monthLabels]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex" onClick={() => setSelectedMonthIndex(null)}>
       {/* Left Sidebar */}
       <div
         className={`${sidebarOpen ? '' : 'w-0'} flex-shrink-0 bg-white border-r border-gray-200 overflow-hidden shadow-md relative`}
@@ -1647,13 +1649,26 @@ export default function CashflowModel() {
               </div>
             </div>
           </div>
-          <div className="p-4">
+          <div className="p-4" onClick={(e) => e.stopPropagation()}>
             <ResponsiveContainer width="100%" height={400}>
               <BarChart
                   data={calculations}
                   margin={{ top: 10, right: 10, left: -10, bottom: -10 }}
                   onMouseMove={(state) => state.activeTooltipIndex !== undefined && setActiveBarIndex(state.activeTooltipIndex)}
                   onMouseLeave={() => setActiveBarIndex(null)}
+                  onClick={(state) => {
+                    if (state && state.activeTooltipIndex !== undefined) {
+                      const clickedIndex = state.activeTooltipIndex;
+                      setSelectedMonthIndex(prev => prev === clickedIndex ? null : clickedIndex);
+                      // Scroll to the column in the table
+                      if (tableContainerRef.current) {
+                        const categoryColWidth = 140;
+                        const cellWidth = 70;
+                        const scrollPosition = categoryColWidth + (clickedIndex * cellWidth) - (tableContainerRef.current.clientWidth / 2) + (cellWidth / 2);
+                        tableContainerRef.current.scrollTo({ left: Math.max(0, scrollPosition), behavior: 'smooth' });
+                      }
+                    }
+                  }}
                 >
                 <XAxis dataKey="month" tick={{ fontSize: 10 }} interval={0} angle={-45} textAnchor="end" height={60} />
                 <YAxis tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} tick={{ fontSize: 11 }} domain={[-50000, 'dataMax']} allowDataOverflow={true} />
@@ -1686,13 +1701,13 @@ export default function CashflowModel() {
           <div className="px-3 py-2.5 border-b border-gray-200">
             <h2 className="text-sm font-semibold text-gray-700">Monthly Breakdown</h2>
           </div>
-          <div className="p-4 overflow-x-auto">
+          <div ref={tableContainerRef} className="p-4 overflow-x-auto" onClick={(e) => e.stopPropagation()}>
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b">
                 <th className="text-left py-2 px-1 sticky left-0 bg-white font-medium text-gray-600 min-w-[140px]">Category</th>
                 {calculations.map((d, i) => (
-                  <th key={i} className="text-right py-2 px-1 font-medium text-gray-600 min-w-[70px]">{d.month}</th>
+                  <th key={i} className={`text-center py-2 px-1 font-medium min-w-[70px] ${i === selectedMonthIndex ? 'bg-gray-700 text-white' : 'text-gray-600'}`}>{d.month}</th>
                 ))}
               </tr>
             </thead>
@@ -1700,96 +1715,96 @@ export default function CashflowModel() {
               {/* Inflows Section */}
               <tr className="bg-green-50">
                 <td className="py-2 px-1 font-semibold text-green-700 sticky left-0 bg-green-50">INFLOWS</td>
-                {calculations.map((_, i) => <td key={i}></td>)}
+                {calculations.map((_, i) => <td key={i} className={i === selectedMonthIndex ? 'bg-green-600' : ''}></td>)}
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-1 px-1 pl-4 sticky left-0 bg-white">MRR</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className="text-right py-1 px-1 text-green-600">{formatCurrency(d.mrr)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600'}`}>{formatCurrency(d.mrr)}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Additional Revenue</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className="text-right py-1 px-1 text-green-600">{formatCurrency(d.additionalRevenue)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600'}`}>{formatCurrency(d.additionalRevenue)}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Annual Plan Revenue</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className="text-right py-1 px-1 text-green-600">{d.annualPlanRevenue ? formatCurrency(d.annualPlanRevenue) : '-'}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600'}`}>{d.annualPlanRevenue ? formatCurrency(d.annualPlanRevenue) : '-'}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Capital Injection</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className="text-right py-1 px-1 text-green-600">{d.capitalInjection ? formatCurrency(d.capitalInjection) : '-'}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600'}`}>{d.capitalInjection ? formatCurrency(d.capitalInjection) : '-'}</td>
                 ))}
               </tr>
               <tr className="bg-green-100 font-semibold">
                 <td className="py-1 px-1 sticky left-0 bg-green-100">Total Inflows</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className="text-right py-1 px-1 text-green-700">{formatCurrency(d.totalInflows)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-green-700 text-white' : 'text-green-700'}`}>{formatCurrency(d.totalInflows)}</td>
                 ))}
               </tr>
 
               {/* Outflows Section */}
               <tr className="bg-red-50">
                 <td className="py-2 px-1 font-semibold text-red-700 sticky left-0 bg-red-50">OUTFLOWS</td>
-                {calculations.map((_, i) => <td key={i}></td>)}
+                {calculations.map((_, i) => <td key={i} className={i === selectedMonthIndex ? 'bg-red-600' : ''}></td>)}
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Payroll (All-In)</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className="text-right py-1 px-1 text-red-600">{formatCurrency(d.payroll)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{formatCurrency(d.payroll)}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Recurring Expenses</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className="text-right py-1 px-1 text-red-600">{formatCurrency(d.recurringExpenses)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{formatCurrency(d.recurringExpenses)}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-1 px-1 pl-4 sticky left-0 bg-white">One-Time Expenses</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className="text-right py-1 px-1 text-red-600">{d.oneTimeExpenses ? formatCurrency(d.oneTimeExpenses) : '-'}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{d.oneTimeExpenses ? formatCurrency(d.oneTimeExpenses) : '-'}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Variable Expenses</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className="text-right py-1 px-1 text-red-600">{formatCurrency(d.variableExpenses)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{formatCurrency(d.variableExpenses)}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Refunds</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className="text-right py-1 px-1 text-red-600">{formatCurrency(d.refunds)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{formatCurrency(d.refunds)}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Estimated Taxes</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className="text-right py-1 px-1 text-red-600">{d.estimatedTaxes ? formatCurrency(d.estimatedTaxes) : '-'}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{d.estimatedTaxes ? formatCurrency(d.estimatedTaxes) : '-'}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Owner's Draw</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className="text-right py-1 px-1 text-red-600">{formatCurrency(d.ownersDraw)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{formatCurrency(d.ownersDraw)}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Owner's 401k</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className="text-right py-1 px-1 text-red-600">{d.owners401k ? formatCurrency(d.owners401k) : '-'}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{d.owners401k ? formatCurrency(d.owners401k) : '-'}</td>
                 ))}
               </tr>
               <tr className="bg-red-100 font-semibold">
                 <td className="py-1 px-1 sticky left-0 bg-red-100">Total Outflows</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className="text-right py-1 px-1 text-red-700">{formatCurrency(d.totalOutflows)}</td>
+                  <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-700 text-white' : 'text-red-700'}`}>{formatCurrency(d.totalOutflows)}</td>
                 ))}
               </tr>
 
@@ -1797,7 +1812,7 @@ export default function CashflowModel() {
               <tr className="bg-gray-100">
                 <td className="py-2 px-1 font-semibold sticky left-0 bg-gray-100">Net Cashflow</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-right py-2 px-1 font-semibold ${d.netCashflow >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                  <td key={i} className={`text-center py-2 px-1 font-semibold ${i === selectedMonthIndex ? (d.netCashflow >= 0 ? 'bg-green-700 text-white' : 'bg-red-700 text-white') : (d.netCashflow >= 0 ? 'text-green-700' : 'text-red-700')}`}>
                     {formatCurrency(d.netCashflow)}
                   </td>
                 ))}
@@ -1805,7 +1820,7 @@ export default function CashflowModel() {
               <tr className="bg-blue-100">
                 <td className="py-2 px-1 font-bold sticky left-0 bg-blue-100">Cash Balance</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-right py-2 px-1 font-bold ${d.cashBalance >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
+                  <td key={i} className={`text-center py-2 px-1 font-bold ${i === selectedMonthIndex ? (d.cashBalance >= 0 ? 'bg-blue-700 text-white' : 'bg-red-700 text-white') : (d.cashBalance >= 0 ? 'text-blue-700' : 'text-red-700')}`}>
                     {formatCurrency(d.cashBalance)}
                   </td>
                 ))}
