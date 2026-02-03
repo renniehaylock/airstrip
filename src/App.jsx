@@ -1814,7 +1814,7 @@ export default function CashflowModel() {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b">
-                <th className="text-left py-2 px-1 sticky left-0 bg-white font-medium text-gray-600 min-w-[140px]">Category</th>
+                <th className="text-left py-2 px-1 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 font-medium text-gray-600 min-w-[140px]">Category</th>
                 {calculations.map((d, i) => (
                   <th key={i} className={`text-center py-2 px-1 font-medium min-w-[70px] ${i === selectedMonthIndex ? 'bg-gray-700 text-white' : 'text-gray-600'}`}>{d.month}</th>
                 ))}
@@ -1823,35 +1823,35 @@ export default function CashflowModel() {
             <tbody>
               {/* Inflows Section */}
               <tr className="bg-green-50">
-                <td className="py-2 px-1 font-semibold text-green-700 sticky left-0 bg-green-50">INFLOWS</td>
+                <td className="py-2 px-1 font-semibold text-green-700 sticky left-0 z-10 relative bg-green-50 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">INFLOWS</td>
                 {calculations.map((_, i) => <td key={i} className={i === selectedMonthIndex ? 'bg-green-600' : ''}></td>)}
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 bg-white">MRR</td>
+                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">MRR</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600'}`}>{formatCurrency(d.mrr)}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Additional Revenue</td>
+                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Additional Revenue</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600'}`}>{formatCurrency(d.additionalRevenue)}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Annual Plan Revenue</td>
+                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Annual Plan Revenue</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600'}`}>{d.annualPlanRevenue ? formatCurrency(d.annualPlanRevenue) : '-'}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Capital Injection</td>
+                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Capital Injection</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600'}`}>{d.capitalInjection ? formatCurrency(d.capitalInjection) : '-'}</td>
                 ))}
               </tr>
               <tr className="bg-green-100 font-semibold">
-                <td className="py-1 px-1 sticky left-0 bg-green-100">Total Inflows</td>
+                <td className="py-1 px-1 sticky left-0 z-10 relative bg-green-100 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Total Inflows</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-green-700 text-white' : 'text-green-700'}`}>{formatCurrency(d.totalInflows)}</td>
                 ))}
@@ -1859,59 +1859,59 @@ export default function CashflowModel() {
 
               {/* Outflows Section */}
               <tr className="bg-red-50">
-                <td className="py-2 px-1 font-semibold text-red-700 sticky left-0 bg-red-50">OUTFLOWS</td>
+                <td className="py-2 px-1 font-semibold text-red-700 sticky left-0 z-10 relative bg-red-50 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">OUTFLOWS</td>
                 {calculations.map((_, i) => <td key={i} className={i === selectedMonthIndex ? 'bg-red-600' : ''}></td>)}
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Payroll (All-In)</td>
+                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Payroll (All-In)</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{formatCurrency(d.payroll)}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Recurring Expenses</td>
+                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Recurring Expenses</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{formatCurrency(d.recurringExpenses)}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 bg-white">One-Time Expenses</td>
+                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">One-Time Expenses</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{d.oneTimeExpenses ? formatCurrency(d.oneTimeExpenses) : '-'}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Variable Expenses</td>
+                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Variable Expenses</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{formatCurrency(d.variableExpenses)}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Refunds</td>
+                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Refunds</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{formatCurrency(d.refunds)}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Estimated Taxes</td>
+                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Estimated Taxes</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{d.estimatedTaxes ? formatCurrency(d.estimatedTaxes) : '-'}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Owner's Draw</td>
+                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Owner's Draw</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{formatCurrency(d.ownersDraw)}</td>
                 ))}
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="py-1 px-1 pl-4 sticky left-0 bg-white">Owner's 401k</td>
+                <td className="py-1 px-1 pl-4 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Owner's 401k</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600'}`}>{d.owners401k ? formatCurrency(d.owners401k) : '-'}</td>
                 ))}
               </tr>
               <tr className="bg-red-100 font-semibold">
-                <td className="py-1 px-1 sticky left-0 bg-red-100">Total Outflows</td>
+                <td className="py-1 px-1 sticky left-0 z-10 relative bg-red-100 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Total Outflows</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 ${i === selectedMonthIndex ? 'bg-red-700 text-white' : 'text-red-700'}`}>{formatCurrency(d.totalOutflows)}</td>
                 ))}
@@ -1919,7 +1919,7 @@ export default function CashflowModel() {
 
               {/* Summary */}
               <tr className="bg-gray-100">
-                <td className="py-2 px-1 font-semibold sticky left-0 bg-gray-100">Net Cashflow</td>
+                <td className="py-2 px-1 font-semibold sticky left-0 z-10 relative bg-gray-100 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Net Cashflow</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-2 px-1 font-semibold ${i === selectedMonthIndex ? (d.netCashflow >= 0 ? 'bg-green-700 text-white' : 'bg-red-700 text-white') : (d.netCashflow >= 0 ? 'text-green-700' : 'text-red-700')}`}>
                     {formatCurrency(d.netCashflow)}
@@ -1927,7 +1927,7 @@ export default function CashflowModel() {
                 ))}
               </tr>
               <tr className="bg-blue-100">
-                <td className="py-2 px-1 font-bold sticky left-0 bg-blue-100">Cash Balance</td>
+                <td className="py-2 px-1 font-bold sticky left-0 z-10 relative bg-blue-100 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Cash Balance</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-2 px-1 font-bold ${i === selectedMonthIndex ? (d.cashBalance >= 0 ? 'bg-blue-700 text-white' : 'bg-red-700 text-white') : (d.cashBalance >= 0 ? 'text-blue-700' : 'text-red-700')}`}>
                     {formatCurrency(d.cashBalance)}
