@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from 'recharts';
-import { Plus, Trash2, ChevronDown, ChevronRight, TrendingUp, Users, CreditCard, Save, FolderOpen, Eye, EyeOff, X, Link, Check, PanelLeftClose, PanelLeftOpen, ChevronUp, Info } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, TrendingUp, Users, CreditCard, Save, FolderOpen, Eye, EyeOff, X, Link, Check, PanelLeftClose, PanelLeftOpen, ChevronUp, Info, Pencil } from 'lucide-react';
 
 const STORAGE_KEY = 'cashflow-scenarios';
 
@@ -526,7 +526,12 @@ export default function CashflowModel() {
   const [currentScenarioName, setCurrentScenarioName] = useState('');
   const [scenarioModified, setScenarioModified] = useState(false);
   const [newScenarioName, setNewScenarioName] = useState('');
+  const [newScenarioNote, setNewScenarioNote] = useState('');
+  const [currentScenarioNote, setCurrentScenarioNote] = useState('');
   const [showScenarioModal, setShowScenarioModal] = useState(false);
+  const [showEditScenarioModal, setShowEditScenarioModal] = useState(false);
+  const [editScenarioName, setEditScenarioName] = useState('');
+  const [editScenarioNote, setEditScenarioNote] = useState('');
   const [linkCopied, setLinkCopied] = useState(false);
   const [activeBarIndex, setActiveBarIndex] = useState(null);
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(null);
@@ -744,23 +749,26 @@ export default function CashflowModel() {
     const scenario = {
       name: newScenarioName.trim(),
       savedAt: new Date().toISOString(),
+      note: newScenarioNote.trim(),
       data: { ...state }
     };
-    
+
     const existingIndex = scenarios.findIndex(s => s.name === scenario.name);
     let newScenarios;
-    
+
     if (existingIndex >= 0) {
       newScenarios = [...scenarios];
       newScenarios[existingIndex] = scenario;
     } else {
       newScenarios = [...scenarios, scenario];
     }
-    
+
     saveScenarios(newScenarios);
     setCurrentScenarioName(scenario.name);
+    setCurrentScenarioNote(scenario.note);
     setScenarioModified(false);
     setNewScenarioName('');
+    setNewScenarioNote('');
     setShowScenarioModal(false);
   };
 
@@ -768,6 +776,7 @@ export default function CashflowModel() {
     isLoadingScenario.current = true;
     setState(scenario.data);
     setCurrentScenarioName(scenario.name);
+    setCurrentScenarioNote(scenario.note || '');
     setScenarioModified(false);
   };
 
@@ -776,6 +785,7 @@ export default function CashflowModel() {
     const scenario = {
       name: currentScenarioName,
       savedAt: new Date().toISOString(),
+      note: currentScenarioNote,
       data: { ...state }
     };
     const newScenarios = scenarios.map(s =>
@@ -790,13 +800,45 @@ export default function CashflowModel() {
     saveScenarios(newScenarios);
     if (currentScenarioName === name) {
       setCurrentScenarioName('');
+      setCurrentScenarioNote('');
       setScenarioModified(false);
     }
+  };
+
+  const openEditScenarioModal = () => {
+    setEditScenarioName(currentScenarioName);
+    setEditScenarioNote(currentScenarioNote);
+    setShowEditScenarioModal(true);
+  };
+
+  const saveEditedScenario = () => {
+    if (!editScenarioName.trim()) return;
+    const oldName = currentScenarioName;
+    const newName = editScenarioName.trim();
+    const newNote = editScenarioNote.trim();
+
+    // Check if renaming to an existing scenario name (that isn't the current one)
+    if (newName !== oldName && scenarios.some(s => s.name === newName)) {
+      return; // Don't allow overwriting another scenario
+    }
+
+    const newScenarios = scenarios.map(s => {
+      if (s.name === oldName) {
+        return { ...s, name: newName, note: newNote };
+      }
+      return s;
+    });
+
+    saveScenarios(newScenarios);
+    setCurrentScenarioName(newName);
+    setCurrentScenarioNote(newNote);
+    setShowEditScenarioModal(false);
   };
 
   const resetToDefaults = () => {
     setState(getDefaultState());
     setCurrentScenarioName('');
+    setCurrentScenarioNote('');
     setScenarioModified(false);
   };
 
@@ -1560,6 +1602,24 @@ export default function CashflowModel() {
               <>
                 <ChevronRight size={14} className="mx-1 text-gray-400" />
                 <span className="text-gray-800 font-medium">{currentScenarioName}</span>
+                {currentScenarioNote && (
+                  <button
+                    className="ml-2 p-1 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 relative group"
+                    title={currentScenarioNote}
+                  >
+                    <Info size={14} />
+                    <div className="absolute left-0 top-full mt-1 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 whitespace-pre-wrap">
+                      {currentScenarioNote}
+                    </div>
+                  </button>
+                )}
+                <button
+                  onClick={openEditScenarioModal}
+                  className="ml-1 p-1 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100"
+                  title="Edit scenario name and note"
+                >
+                  <Pencil size={14} />
+                </button>
               </>
             )}
           </div>
@@ -1573,7 +1633,7 @@ export default function CashflowModel() {
             <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Save Scenario</h3>
-                <button onClick={() => setShowScenarioModal(false)} className="text-gray-400 hover:text-gray-600">
+                <button onClick={() => { setShowScenarioModal(false); setNewScenarioName(''); setNewScenarioNote(''); }} className="text-gray-400 hover:text-gray-600">
                   <X size={20} />
                 </button>
               </div>
@@ -1582,16 +1642,22 @@ export default function CashflowModel() {
                 value={newScenarioName}
                 onChange={(e) => setNewScenarioName(e.target.value)}
                 placeholder="Scenario name..."
-                className="w-full px-3 py-2 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border rounded mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 autoFocus
-                onKeyDown={(e) => e.key === 'Enter' && saveCurrentScenario()}
+              />
+              <textarea
+                value={newScenarioNote}
+                onChange={(e) => setNewScenarioNote(e.target.value)}
+                placeholder="Add a note (optional)..."
+                className="w-full px-3 py-2 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                rows={3}
               />
               {scenarios.some(s => s.name === newScenarioName.trim()) && (
                 <p className="text-amber-600 text-sm mb-4">This will overwrite the existing scenario.</p>
               )}
               <div className="flex justify-end gap-2">
                 <button
-                  onClick={() => setShowScenarioModal(false)}
+                  onClick={() => { setShowScenarioModal(false); setNewScenarioName(''); setNewScenarioNote(''); }}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800"
                 >
                   Cancel
@@ -1599,6 +1665,55 @@ export default function CashflowModel() {
                 <button
                   onClick={saveCurrentScenario}
                   disabled={!newScenarioName.trim()}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Scenario Modal */}
+        {showEditScenarioModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Edit Scenario</h3>
+                <button onClick={() => setShowEditScenarioModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <X size={20} />
+                </button>
+              </div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <input
+                type="text"
+                value={editScenarioName}
+                onChange={(e) => setEditScenarioName(e.target.value)}
+                placeholder="Scenario name..."
+                className="w-full px-3 py-2 border rounded mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoFocus
+              />
+              {editScenarioName.trim() !== currentScenarioName && scenarios.some(s => s.name === editScenarioName.trim()) && (
+                <p className="text-red-600 text-sm mb-3">A scenario with this name already exists.</p>
+              )}
+              <label className="block text-sm font-medium text-gray-700 mb-1">Note</label>
+              <textarea
+                value={editScenarioNote}
+                onChange={(e) => setEditScenarioNote(e.target.value)}
+                placeholder="Add a note (optional)..."
+                className="w-full px-3 py-2 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                rows={3}
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowEditScenarioModal(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveEditedScenario}
+                  disabled={!editScenarioName.trim() || (editScenarioName.trim() !== currentScenarioName && scenarios.some(s => s.name === editScenarioName.trim()))}
                   className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Save
