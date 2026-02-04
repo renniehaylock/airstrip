@@ -1737,7 +1737,7 @@ export default function CashflowModel() {
                 <span className="text-gray-800 font-medium">{currentScenarioName}</span>
                 {currentScenarioNote && (
                   <button
-                    className="ml-2 px-1 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 relative group"
+                    className="ml-2 px-1 text-gray-400 hover:text-gray-600 rounded relative group"
                     title={currentScenarioNote}
                   >
                     <Info size={14} />
@@ -1748,7 +1748,7 @@ export default function CashflowModel() {
                 )}
                 <button
                   onClick={openEditScenarioModal}
-                  className="ml-1 px-1 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100"
+                  className="ml-1 px-1 text-gray-400 hover:text-gray-600 rounded"
                   title="Edit scenario name and note"
                 >
                   <Pencil size={14} />
@@ -1875,9 +1875,12 @@ export default function CashflowModel() {
             </div>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <div className="text-sm text-gray-500">Monthly Burn Rate</div>
-            <div className="text-xl font-bold text-gray-800">
-              {formatCurrency(calculations[0]?.totalOutflows - calculations[0]?.totalInflows)}
+            <div className="text-sm text-gray-500">Zero Cash Date</div>
+            <div className={`text-xl font-bold ${calculations.findIndex(c => c.cashBalance < 0) >= 0 ? 'text-red-600' : 'text-green-600'}`}>
+              {(() => {
+                const idx = calculations.findIndex(c => c.cashBalance < 0);
+                return idx >= 0 ? monthLabels[idx] : 'Runway Clear';
+              })()}
             </div>
           </div>
         </div>
