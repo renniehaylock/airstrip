@@ -483,39 +483,24 @@ export default function CashflowModel() {
 
   // Default state factory
   const getDefaultState = () => ({
-    initialCash: 150000,
-    startingMRR: 63000,
-    newCustomersPerMonth: 50,
-    arpu: 15,
+    initialCash: 0,
+    startingMRR: 0,
+    newCustomersPerMonth: 10,
+    arpu: 10,
     monthlyChurnRate: 5,
     additionalRevenue: 0,
     additionalRevenueGrowth: 0,
     annualPlanRevenue: [],
     capitalInjections: [],
-    employees: [
-      { id: 1, name: 'Employee 1', salary: 8000, hidden: false, startMonth: 0, endMonth: null, severanceMonths: 0 },
-      { id: 2, name: 'Employee 2', salary: 7000, hidden: false, startMonth: 0, endMonth: null, severanceMonths: 0 },
-    ],
-    recurringExpenses: [
-      { id: 1, category: 'Software & Tools', amount: 2000, hidden: false },
-      { id: 2, category: 'Hosting & Infrastructure', amount: 1500, hidden: false },
-      { id: 3, category: 'Marketing', amount: 1000, hidden: false },
-    ],
-    oneTimeExpenses: [
-      { id: 1, description: 'Equipment', month: 3, amount: 5000, hidden: false },
-    ],
+    employees: [],
+    recurringExpenses: [],
+    oneTimeExpenses: [],
     variableExpenses: [
       { id: 1, category: 'Stripe Fees', percentage: 2.9, hidden: false },
     ],
-    refunds: [
-      { id: 1, category: 'Customer Refunds', amount: 500, hidden: false },
-    ],
-    ownersDraw: [
-      { id: 1, category: 'Owner Draw', amount: 0, hidden: false },
-    ],
-    owners401k: [
-      { id: 1, category: '401k Contribution', month: 0, amount: 0, hidden: false },
-    ],
+    refunds: [],
+    ownersDraw: [],
+    owners401k: [],
     estimatedTaxes: [
       { id: 1, description: 'Q1 Estimated Tax', month: 3, amount: 0, hidden: false },
       { id: 2, description: 'Q2 Estimated Tax', month: 5, amount: 0, hidden: false },
