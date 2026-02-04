@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from 'recharts';
-import { Plus, Trash2, ChevronDown, ChevronRight, TrendingUp, Users, CreditCard, Save, FolderOpen, Eye, EyeOff, X, Link, Check, PanelLeftClose, PanelLeftOpen, ChevronUp, Info, Pencil, Settings } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, TrendingUp, Users, CreditCard, Save, FolderOpen, Eye, EyeOff, X, Link, Check, PanelLeftClose, PanelLeftOpen, ChevronUp, Info, Pencil, Settings, Sliders } from 'lucide-react';
 
 const STORAGE_KEY = 'cashflow-scenarios';
 
@@ -696,6 +696,7 @@ export default function CashflowModel() {
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(460);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isResizing = useRef(false);
 
   const toggleSection = (section) => {
@@ -1096,24 +1097,46 @@ export default function CashflowModel() {
 
   return (
     <div className="h-screen bg-gray-50 flex overflow-hidden" onClick={() => setSelectedMonthIndex(null)}>
-      {/* Left Sidebar */}
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Left Sidebar - Hidden on mobile, shown as overlay when mobileMenuOpen */}
       <div
-        className={`${sidebarOpen ? '' : 'w-0'} flex-shrink-0 bg-white border-r border-gray-200 overflow-hidden shadow-md relative h-full`}
-        style={{ width: sidebarOpen ? sidebarWidth : 0, transition: isResizing.current ? 'none' : 'width 0.3s' }}
+        className={`
+          ${sidebarOpen ? '' : 'md:w-0'}
+          hidden md:block flex-shrink-0 bg-white border-r border-gray-200 overflow-hidden shadow-md relative h-full
+          ${mobileMenuOpen ? '!block fixed inset-0 z-50 w-full' : ''}
+        `}
+        style={{ width: mobileMenuOpen ? '100%' : (sidebarOpen ? sidebarWidth : 0), transition: isResizing.current ? 'none' : 'width 0.3s' }}
       >
-        <div className="h-full flex flex-col bg-gray-50" style={{ width: sidebarWidth }}>
+        <div className={`h-full flex flex-col bg-gray-50 ${mobileMenuOpen ? 'w-full' : ''}`} style={{ width: mobileMenuOpen ? '100%' : sidebarWidth }}>
           {/* App Header */}
-          <div className="px-3 py-2 bg-white border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+          <div className="px-3 h-12 bg-white border-b border-gray-200 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-1">
               <img src="/airstrip-favicon.png" alt="Airstrip" className="w-4 h-4" />
               <h1 className="text-lg font-bold text-gray-800">Airstrip</h1>
             </div>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="p-1 rounded hover:bg-gray-100 transition-colors"
-            >
-              <PanelLeftClose size={18} className="text-gray-600" />
-            </button>
+            {/* Close button - different for mobile vs desktop */}
+            {mobileMenuOpen ? (
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
+              >
+                View Dashboard
+              </button>
+            ) : (
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="p-1 rounded hover:bg-gray-100 transition-colors"
+              >
+                <PanelLeftClose size={18} className="text-gray-600" />
+              </button>
+            )}
           </div>
 
           {/* Scrollable Sidebar Content */}
@@ -1782,11 +1805,11 @@ export default function CashflowModel() {
         </div>
       </div>
 
-      {/* Sidebar Resize Handle */}
+      {/* Sidebar Resize Handle - Hidden on mobile */}
       {sidebarOpen && (
         <div
           onMouseDown={startResizing}
-          className="absolute top-0 bottom-0 w-1 cursor-col-resize bg-transparent hover:bg-blue-400 transition-colors z-20"
+          className="hidden md:block absolute top-0 bottom-0 w-1 cursor-col-resize bg-transparent hover:bg-blue-400 transition-colors z-20"
           style={{ left: sidebarWidth - 2 }}
         />
       )}
@@ -1794,41 +1817,51 @@ export default function CashflowModel() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header Bar */}
-        <div className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
-          <div className="flex items-center text-sm">
-            {!sidebarOpen && (
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="p-1 rounded hover:bg-gray-100 transition-colors mr-2"
-              >
-                <PanelLeftOpen size={18} className="text-gray-600" />
-              </button>
-            )}
-            <span className="text-gray-600">Dashboard</span>
-            {currentScenarioName && (
-              <>
-                <ChevronRight size={14} className="mx-1 text-gray-400" />
-                <span className="text-gray-800 font-medium">{currentScenarioName}</span>
-                {currentScenarioNote && (
-                  <button
-                    className="ml-2 px-1 text-gray-400 hover:text-gray-600 rounded relative group"
-                    title={currentScenarioNote}
-                  >
-                    <Info size={14} />
-                    <div className="absolute left-0 top-full mt-1 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 whitespace-pre-wrap">
-                      {currentScenarioNote}
-                    </div>
-                  </button>
-                )}
+        <div className="bg-white border-b border-gray-200 px-4 h-12 flex items-center flex-shrink-0">
+          <div className="flex items-center justify-between text-sm w-full">
+            <div className="flex items-center">
+              {/* Desktop sidebar toggle */}
+              {!sidebarOpen && (
                 <button
-                  onClick={openEditScenarioModal}
-                  className="ml-1 px-1 text-gray-400 hover:text-gray-600 rounded"
-                  title="Edit scenario name and note"
+                  onClick={() => setSidebarOpen(true)}
+                  className="hidden md:block p-1 rounded hover:bg-gray-100 transition-colors mr-2"
                 >
-                  <Pencil size={14} />
+                  <PanelLeftOpen size={18} className="text-gray-600" />
                 </button>
-              </>
-            )}
+              )}
+              <span className="text-gray-600">Dashboard</span>
+              {currentScenarioName && (
+                <>
+                  <ChevronRight size={14} className="mx-1 text-gray-400" />
+                  <span className="text-gray-800 font-medium">{currentScenarioName}</span>
+                  {currentScenarioNote && (
+                    <button
+                      className="ml-2 px-1 text-gray-400 hover:text-gray-600 rounded relative group"
+                      title={currentScenarioNote}
+                    >
+                      <Info size={14} />
+                      <div className="absolute left-0 top-full mt-1 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 whitespace-pre-wrap">
+                        {currentScenarioNote}
+                      </div>
+                    </button>
+                  )}
+                  <button
+                    onClick={openEditScenarioModal}
+                    className="ml-1 px-1 text-gray-400 hover:text-gray-600 rounded"
+                    title="Edit scenario name and note"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                </>
+              )}
+            </div>
+            {/* Mobile hamburger menu - right side */}
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="md:hidden p-1 rounded hover:bg-gray-100 transition-colors"
+            >
+              <Sliders size={17} className="text-gray-600" />
+            </button>
           </div>
         </div>
 
