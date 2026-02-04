@@ -670,7 +670,7 @@ export default function CashflowModel() {
     mrrMetrics: true,
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [sidebarWidth, setSidebarWidth] = useState(500);
+  const [sidebarWidth, setSidebarWidth] = useState(460);
   const isResizing = useRef(false);
 
   const toggleSection = (section) => {
@@ -1070,15 +1070,15 @@ export default function CashflowModel() {
   }, [state, monthLabels]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex" onClick={() => setSelectedMonthIndex(null)}>
+    <div className="h-screen bg-gray-50 flex overflow-hidden" onClick={() => setSelectedMonthIndex(null)}>
       {/* Left Sidebar */}
       <div
-        className={`${sidebarOpen ? '' : 'w-0'} flex-shrink-0 bg-white border-r border-gray-200 overflow-hidden shadow-md relative`}
+        className={`${sidebarOpen ? '' : 'w-0'} flex-shrink-0 bg-white border-r border-gray-200 overflow-hidden shadow-md relative h-full`}
         style={{ width: sidebarOpen ? sidebarWidth : 0, transition: isResizing.current ? 'none' : 'width 0.3s' }}
       >
-        <div className="h-full overflow-y-auto bg-gray-50" style={{ width: sidebarWidth }}>
+        <div className="h-full flex flex-col bg-gray-50" style={{ width: sidebarWidth }}>
           {/* App Header */}
-          <div className="px-3 py-2 bg-white border-b border-gray-200 flex items-center justify-between">
+          <div className="px-3 py-2 bg-white border-b border-gray-200 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-1">
               <img src="/airstrip-favicon.png" alt="Airstrip" className="w-4 h-4" />
               <h1 className="text-lg font-bold text-gray-800">Airstrip</h1>
@@ -1091,6 +1091,8 @@ export default function CashflowModel() {
             </button>
           </div>
 
+          {/* Scrollable Sidebar Content */}
+          <div className="flex-1 overflow-y-auto">
           {/* Action Buttons */}
           <div className="p-3 border-b border-gray-200 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
@@ -1723,6 +1725,7 @@ export default function CashflowModel() {
               </div>
             )}
           </div>
+          </div>
         </div>
       </div>
 
@@ -1736,7 +1739,7 @@ export default function CashflowModel() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-auto">
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header Bar */}
         <div className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
           <div className="flex items-center text-sm">
@@ -1876,30 +1879,36 @@ export default function CashflowModel() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm px-4 py-3 border border-gray-200">
             <div className="text-sm text-gray-500">Starting Cash</div>
             <div className="text-xl font-bold text-gray-800">{formatCurrency(state.initialCash)}</div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm px-4 py-3 border border-gray-200">
             <div className="text-sm text-gray-500">Month 12 Balance</div>
             <div className={`text-xl font-bold ${calculations[11]?.cashBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(calculations[11]?.cashBalance || 0)}
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm px-4 py-3 border border-gray-200">
             <div className="text-sm text-gray-500">Month {state.numberOfMonths} Balance</div>
             <div className={`text-xl font-bold ${calculations[state.numberOfMonths - 1]?.cashBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(calculations[state.numberOfMonths - 1]?.cashBalance || 0)}
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm px-4 py-3 border border-gray-200">
             <div className="text-sm text-gray-500">Zero Cash Date</div>
-            <div className={`text-xl font-bold ${calculations.findIndex(c => c.cashBalance < 0) >= 0 ? 'text-red-600' : 'text-green-600'}`}>
-              {(() => {
-                const idx = calculations.findIndex(c => c.cashBalance < 0);
-                return idx >= 0 ? monthLabels[idx] : 'Runway Clear';
-              })()}
-            </div>
+            {(() => {
+              const idx = calculations.findIndex(c => c.cashBalance < 0);
+              if (idx >= 0) {
+                return (
+                  <>
+                    <div className="text-xl font-bold text-red-600">{monthLabels[idx]}</div>
+                    <div className="text-xs text-gray-500">{idx + 1} month{idx + 1 !== 1 ? 's' : ''}</div>
+                  </>
+                );
+              }
+              return <div className="text-xl font-bold text-green-600">Runway Clear</div>;
+            })()}
           </div>
         </div>
 
