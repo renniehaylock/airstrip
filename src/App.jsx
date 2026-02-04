@@ -353,6 +353,7 @@ const encodeState = (state) => {
   if (state.chartYMin !== null) params.set('cymin', state.chartYMin);
   if (state.chartYMax !== null) params.set('cymax', state.chartYMax);
   if (state.numberOfMonths !== 24) params.set('nm', state.numberOfMonths);
+  if (state.forecastStartDate) params.set('fsd', state.forecastStartDate);
 
   return params.toString();
 };
@@ -462,6 +463,7 @@ const decodeState = (search, defaultState) => {
     if (params.has('cymin')) state.chartYMin = parseFloat(params.get('cymin'));
     if (params.has('cymax')) state.chartYMax = parseFloat(params.get('cymax'));
     if (params.has('nm')) state.numberOfMonths = parseInt(params.get('nm'));
+    if (params.has('fsd')) state.forecastStartDate = params.get('fsd');
 
     return state;
   } catch (e) {
@@ -501,6 +503,8 @@ export default function CashflowModel() {
     // Chart settings
     chartYMin: null,
     chartYMax: null,
+    // Model settings
+    forecastStartDate: null, // null = current month, or "YYYY-MM" string
   });
 
   // Initialize state from URL or defaults
@@ -530,16 +534,26 @@ export default function CashflowModel() {
   const [selectedChartMetric, setSelectedChartMetric] = useState('cashBalance');
   const tableContainerRef = useRef(null);
 
-  // Generate month labels based on numberOfMonths
+  // Generate month labels based on numberOfMonths and forecastStartDate
   const monthLabels = useMemo(() => {
     const labels = [];
-    const now = new Date();
+    let startYear, startMonth;
+    if (state.forecastStartDate) {
+      // Parse "YYYY-MM" format directly to avoid timezone issues
+      const [year, month] = state.forecastStartDate.split('-').map(Number);
+      startYear = year;
+      startMonth = month - 1; // Convert to 0-indexed
+    } else {
+      const now = new Date();
+      startYear = now.getFullYear();
+      startMonth = now.getMonth();
+    }
     for (let i = 0; i < state.numberOfMonths; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const d = new Date(startYear, startMonth + i, 1);
       labels.push(d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }));
     }
     return labels;
-  }, [state.numberOfMonths]);
+  }, [state.numberOfMonths, state.forecastStartDate]);
 
   // Chart metric configuration
   const chartMetrics = {
@@ -1618,6 +1632,15 @@ export default function CashflowModel() {
                 >
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
+                      <label className="text-xs text-gray-600 w-20">Start Date</label>
+                      <input
+                        type="month"
+                        value={state.forecastStartDate || new Date().toISOString().slice(0, 7)}
+                        onChange={(e) => updateState('forecastStartDate', e.target.value || null)}
+                        className="flex-1 px-2 py-1 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
                       <label className="text-xs text-gray-600 w-20">Months</label>
                       <input
                         type="number"
@@ -1629,6 +1652,14 @@ export default function CashflowModel() {
                         className="flex-1 px-2 py-1 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
                     </div>
+                    {state.forecastStartDate && (
+                      <button
+                        onClick={() => updateState('forecastStartDate', null)}
+                        className="text-xs text-blue-500 hover:text-blue-700"
+                      >
+                        Reset to Current Month
+                      </button>
+                    )}
                     <div className="text-xs text-gray-400">Forecast period (6-60 months)</div>
                   </div>
                 </SidebarBox>
@@ -1706,7 +1737,7 @@ export default function CashflowModel() {
                 <span className="text-gray-800 font-medium">{currentScenarioName}</span>
                 {currentScenarioNote && (
                   <button
-                    className="ml-2 p-1 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 relative group"
+                    className="ml-2 px-1 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 relative group"
                     title={currentScenarioNote}
                   >
                     <Info size={14} />
@@ -1717,7 +1748,7 @@ export default function CashflowModel() {
                 )}
                 <button
                   onClick={openEditScenarioModal}
-                  className="ml-1 p-1 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100"
+                  className="ml-1 px-1 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100"
                   title="Edit scenario name and note"
                 >
                   <Pencil size={14} />
