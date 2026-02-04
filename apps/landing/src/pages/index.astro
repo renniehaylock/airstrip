@@ -1,92 +1,276 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Logo from '../components/Logo.astro';
+import Button from '../components/Button.astro';
+import FeatureCard from '../components/FeatureCard.astro';
+import Icon from '../components/Icon.astro';
+import Cloud from '../components/Cloud.astro';
+const APP_URL = 'https://app.airstrip.com';
+
+const features = [
+  {
+    icon: 'plus',
+    title: 'SaaS Metrics Built In',
+    description: 'Start with the inputs you actually have: ARPU, churn rate, new customers per month. Airstrip models the lag between metric changes and MRR impact—the thing spreadsheets get wrong.'
+  },
+  {
+    icon: 'users',
+    title: 'Payroll Modeling',
+    description: "Add employees with salaries, start and end dates. Hide roles to see what cuts do to cash. Play scenarios without touching your real books."
+  },
+  {
+    icon: 'credit-card',
+    title: 'Space for All Your Expenses',
+    description: "Recurring costs, one-time expenses, Stripe fees, owner's draw, estimated tax payments. Everything accounted for."
+  },
+  {
+    icon: 'activity',
+    title: 'Multiple Inflow Streams',
+    description: "MRR, annual plans, one-off capital injections, secondary recurring revenue. Model your business as it actually works, not how tools assume it does."
+  },
+  {
+    icon: 'upload',
+    title: 'Instant Scenario Sharing',
+    description: 'Every variable encodes into the URL. Send your co-founder the optimistic scenario. Send your advisor the realistic one. No attachments, no "which version is this?"'
+  },
+  {
+    icon: 'lock',
+    title: 'Actually Private',
+    description: "No backend. No login. No data harvesting. Your financial projections stay in your browser. We literally cannot see them."
+  }
+] as const;
+
+const stats = [
+  { value: '60', label: 'Month forecast range' },
+  { value: '∞', label: 'Saved scenarios' },
+  { value: '$0', label: 'Totally free' },
+  { value: '0', label: 'Data we collect' }
+];
+
+const airstripFeatures = [
+  'Input six numbers, see your forecast',
+  'Models churn math automatically',
+  'Save unlimited scenarios',
+  'Share via URL (no attachments)',
+  'No integrations to maintain',
+  'No login, no backend, no cost'
+];
 ---
 
-<Layout title="Airstrip - Cashflow Forecasting for SaaS">
-  <div class="min-h-screen">
-    <!-- Header -->
-    <header class="border-b border-gray-200">
-      <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <img src="/favicon.png" alt="Airstrip" class="w-6 h-6" />
-          <span class="text-xl font-bold">Airstrip</span>
-        </div>
-        <a
-          href="https://app.airstrip.com"
-          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-        >
-          Open App
-        </a>
-      </div>
-    </header>
+<Layout title="Airstrip — SaaS Cash Flow Forecasting">
+  <!-- Navigation -->
+  <nav class="fixed top-0 left-0 right-0 py-4 z-50">
+    <div class="max-w-5xl mx-auto px-6 flex justify-between items-center">
+      <Logo imgSize={25} />
+      <a href={APP_URL} class="text-sm text-gray-600 hover:text-coral-500 transition-colors">
+        Open App
+      </a>
+    </div>
+  </nav>
 
-    <!-- Hero -->
-    <section class="max-w-6xl mx-auto px-4 py-24 text-center">
-      <h1 class="text-5xl font-bold mb-6 text-gray-900">
-        Know Your Runway.<br />Plan With Confidence.
+  <!-- Hero -->
+  <section class="relative pt-28 pb-16 overflow-hidden">
+    <!-- Sky gradient background -->
+    <div class="absolute inset-0 bg-gradient-to-b from-[#DFEBFF] to-white" />
+
+    <div class="max-w-[1000px] mx-auto px-6 relative z-10 text-center">
+
+      <div class="inline-flex items-center shadow-sm gap-2 text-sm text-gray-600 mb-6 bg-[rgba(255,255,255,0.3)] border border-[rgba(255,255,255,0.5)] rounded-full py-2 px-5">
+        <span class="text-coral-500 font-medium font-semibold">Free</span>
+        <span>·</span>
+        <span>No login</span>
+        <span>·</span>
+        <span>No backend</span>
+      </div>
+
+      <h1 class="font-serif leading-[1.2] font-semibold text-[47px] text-gray-900 leading-tight mb-5">
+        Cash flow forecasting that<br />
+        <em class="italic text-blue-500">actually</em> understands SaaS.
       </h1>
-      <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-        Simple 24-month cashflow forecasting for SaaS founders. Model your MRR, track expenses, and never be surprised by your bank balance again.
-      </p>
-      <div class="flex gap-4 justify-center">
-        <a
-          href="https://app.airstrip.com"
-          class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
-        >
-          Start Forecasting — Free
-        </a>
-      </div>
-    </section>
 
-    <!-- Features -->
-    <section class="bg-gray-50 py-24">
-      <div class="max-w-6xl mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-16">Everything you need to plan ahead</h2>
-        <div class="grid md:grid-cols-3 gap-8">
-          <div class="bg-white p-6 rounded-xl border border-gray-200">
-            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-              <span class="text-green-600 text-2xl">📈</span>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">MRR Modeling</h3>
-            <p class="text-gray-600">Project your recurring revenue with customer growth and churn rates. See your steady-state MRR instantly.</p>
-          </div>
-          <div class="bg-white p-6 rounded-xl border border-gray-200">
-            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-              <span class="text-red-600 text-2xl">💸</span>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">Expense Tracking</h3>
-            <p class="text-gray-600">Payroll, recurring costs, one-time expenses, and variable costs. All in one place with full visibility.</p>
-          </div>
-          <div class="bg-white p-6 rounded-xl border border-gray-200">
-            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-              <span class="text-blue-600 text-2xl">🎯</span>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">Runway Clarity</h3>
-            <p class="text-gray-600">See exactly when you'll run out of cash. Compare scenarios and make informed decisions.</p>
-          </div>
+      <p class="text-gray-700 leading-[1.4] text-[24px] mb-8 max-w-xl mx-auto">
+        Your metrics, expenses, and payroll in one chart.<br class="hidden sm:block" />
+        Without the spreadsheet from hell or the<br class="hidden sm:block" />
+        $2k/month enterprise tool.
+      </p>
+
+      <Button href={APP_URL}>
+        Open Airstrip
+        <Icon name="arrow-right" class="w-4 h-4" />
+      </Button>
+
+      <!-- App Screenshot -->
+      <div class="mt-12 rounded-xl overflow-hidden shadow-2xl shadow-slate-900/10 border border-slate-200">
+        <img
+          src="/airstrip-dashboard.png"
+          alt="Airstrip app interface showing cash flow forecast"
+          class="w-[1064px]"
+        />
+      </div>
+
+      <!-- Cloud shapes -->
+      <div class="absolute top-0 left-0 right-0 bottom-0 z-[-1] pointer-events-none">
+        <Cloud scale={0.75} top="80px" left="-35px" rotate={-15} />
+        <Cloud scale={0.6} top="160px" right="0" rotate={-10} flip />  
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Problem Section -->
+  <section id="how-it-works" class="py-20 md:py-28">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="text-sm text-coral-500 font-medium mb-3">The Problem</div>
+      <h2 class="font-serif text-3xl md:text-4xl leading-tight mb-4">
+        SaaS revenue doesn't work like e-commerce.<br class="hidden md:block" />
+        Your forecasting tool should know that.
+      </h2>
+      <p class="text-gray-600 max-w-2xl mb-4">
+        When churn creeps up or acquisition slows down, your MRR doesn't drop immediately; it bleeds out over months. Most founders don't see the iceberg until they've hit it. <strong class="text-gray-800">To model this properly, you've had two options:</strong>
+      </p>
+
+      <div class="grid md:grid-cols-2 gap-6 mt-10 mb-12">
+        <!-- Spreadsheet Card -->
+        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+          <h3 class="font-semibold text-gray-800 mb-4">The Spreadsheet from Hell</h3>
+          <ul class="space-y-3 text-gray-600 text-sm">
+            {[
+              'Pull numbers from Baremetrics, QuickBooks, Gusto',
+              'Build formulas that break when you look at them',
+              'Update monthly (if you remember)',
+              'Lose track of which version is current',
+              'Cry softly when someone asks for a scenario'
+            ].map((item) => (
+              <li class="flex gap-3">
+                <span class="text-coral-500 font-bold shrink-0">×</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- Enterprise Card -->
+        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+          <h3 class="font-semibold text-gray-800 mb-4">Enterprise FP&A Tools</h3>
+          <ul class="space-y-3 text-gray-600 text-sm">
+            {[
+              '$500–$2,000/month minimum',
+              'Require integrating every system',
+              'Need a finance person to configure',
+              'Built for 50-person companies',
+              'Weeks long onboarding process'
+            ].map((item) => (
+              <li class="flex gap-3">
+                <span class="text-coral-500 font-bold shrink-0">×</span>
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
-    </section>
 
-    <!-- CTA -->
-    <section class="py-24">
-      <div class="max-w-4xl mx-auto px-4 text-center">
-        <h2 class="text-3xl font-bold mb-4">Ready to see your financial future?</h2>
-        <p class="text-xl text-gray-600 mb-8">No signup required. Your data stays in your browser.</p>
-        <a
-          href="https://app.airstrip.com"
-          class="inline-block px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
-        >
-          Launch Airstrip
-        </a>
-      </div>
-    </section>
+      <!-- Airstrip Card -->
+      <div class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-8 md:p-10 text-center max-w-2xl mx-auto">
+        <div class="flex items-center justify-center gap-2 mb-3">
+          <div class="w-8 h-8 bg-coral-500 rounded-lg flex items-center justify-center">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 stroke-white">
+              <path d="M2 20L22 4M2 20l4-8m-4 8h8" />
+            </svg>
+          </div>
+          <span class="text-xl font-semibold text-gray-800">With Airstrip</span>
+        </div>
+        <p class="text-gray-600 mb-6">Enter your numbers. See your runway. That's it.</p>
 
-    <!-- Footer -->
-    <footer class="border-t border-gray-200 py-8">
-      <div class="max-w-6xl mx-auto px-4 text-center text-gray-500 text-sm">
-        <p>&copy; {new Date().getFullYear()} Airstrip. Built for SaaS founders.</p>
+        <ul class="space-y-3 text-left max-w-sm mx-auto">
+          {airstripFeatures.map((item) => (
+            <li class="flex items-start gap-3 text-gray-700 text-sm">
+              <svg class="w-5 h-5 text-coral-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              {item}
+            </li>
+          ))}
+        </ul>
       </div>
-    </footer>
-  </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="py-20 md:py-28 bg-slate-50">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="text-sm text-coral-500 font-medium mb-3">Features</div>
+      <h2 class="font-serif text-3xl md:text-4xl leading-tight mb-3">
+        Your metrics in. Your runway out.
+      </h2>
+      <p class="text-gray-600 max-w-2xl mb-12">
+        Everything you'd need Baremetrics + QuickBooks + Gusto +<br class="hidden sm:block" />
+        a spreadsheet to forecast cashflow, in one chart.
+      </p>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {features.map(({ icon, title, description }) => (
+          <FeatureCard title={title} description={description}>
+            <Icon slot="icon" name={icon} class="w-5 h-5 text-coral-500" />
+          </FeatureCard>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Founder Section -->
+  <section class="py-20 md:py-28">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div>
+          <div class="text-6xl text-coral-400 font-serif leading-none mb-4">"</div>
+          <blockquote class="text-xl md:text-2xl text-gray-700 leading-relaxed italic -mt-8">
+            I built Airstrip to forecast cash flow at Huntr, my B2C SaaS company. After 8 years of maintaining a spreadsheet that pulled from Baremetrics, QuickBooks, and Gusto; I finally made the leap and built the tool I actually needed.
+          </blockquote>
+          <p class="mt-6 text-gray-600">
+            – Rennie Haylock, founder of <a href="https://huntr.co" target="_blank" class="text-coral-500 hover:underline">Huntr</a>
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          {stats.map(({ value, label }) => (
+            <div class="text-center p-6 bg-white rounded-xl border border-slate-200">
+              <div class="text-3xl md:text-4xl font-semibold text-coral-500">{value}</div>
+              <div class="text-sm text-gray-500 mt-1">{label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-20 md:py-28 relative overflow-hidden">
+    <!-- Sky gradient background -->
+    <div class="absolute inset-0" />
+
+    <div class="max-w-3xl mx-auto px-6 relative z-10 text-center">
+      <div class="text-sm text-coral-500 font-medium mb-3">Get Started</div>
+      <h2 class="font-serif text-3xl md:text-4xl leading-tight mb-4">
+        Stop duct-taping Baremetrics to<br class="hidden sm:block" />
+        QuickBooks to a spreadsheet.
+      </h2>
+      <p class="text-gray-600 max-w-xl mx-auto mb-8">
+        See where your runway is actually headed. No signup, no credit card, no "let's schedule a demo."
+      </p>
+
+      <Button href={APP_URL}>
+        Open Airstrip
+        <Icon name="arrow-right" class="w-4 h-4" />
+      </Button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-8 text-center text-gray-500 text-sm">
+    <div class="max-w-5xl mx-auto px-6">
+      <p>
+        Built by <a href="https://huntr.co" target="_blank" class="text-coral-500 hover:underline">Rennie Haylock</a> from <a href="https://huntr.co" target="_blank" class="text-coral-500 hover:underline">Huntr</a>
+      </p>
+    </div>
+  </footer>
 </Layout>

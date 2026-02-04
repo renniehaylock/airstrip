@@ -1,0 +1,50 @@
+---
+interface Props {
+  scale?: number;
+  top?: string;
+  left?: string;
+  right?: string;
+  rotate?: number;
+  opacity?: number;
+  flip?: boolean;
+}
+
+const { scale = 0.8, top = '160px', left, right, rotate = 0, opacity = 1, flip = false } = Astro.props;
+
+// Randomize per-instance so each cloud drifts differently
+const duration = 20 + Math.random() * 15; // 20–35s
+const delay = -(Math.random() * 20); // stagger start
+
+const styles = [
+  `transform: scale(${flip ? -scale : scale}, ${scale}) rotate(${rotate}deg)`,
+  `top: ${top}`,
+  left !== undefined && `left: ${left}`,
+  right !== undefined && `right: ${right}`,
+  `opacity: ${opacity}`,
+].filter(Boolean).join('; ');
+---
+
+<div class="absolute" style={styles}>
+  <div class="cloud-drift" style={`animation-duration: ${duration}s; animation-delay: ${delay}s`}>
+    <div class="absolute top-[40px] left-[230px] w-[120px] h-[120px] bg-white/50 rounded-full border border-[rgba(8,95,233,0.15)]" />
+    <div class="absolute top-[40px] left-[0] w-[120px] h-[120px] bg-white/50 rounded-full border border-[rgba(8,95,233,0.15)]" />
+    <div class="absolute top-[0px] left-[60px] w-[120px] h-[120px] bg-white/70 rounded-full border border-[rgba(8,95,233,0.15)]" />
+    <div class="absolute top-[80px] left-[60px] w-[120px] h-[120px] bg-white/70 rounded-full border border-[rgba(8,95,233,0.15)]" />
+    <div class="absolute top-[0px] left-[150px] w-[120px] h-[120px] bg-white/60 rounded-full border border-[rgba(8,95,233,0.15)]" />
+    <div class="absolute top-[80px] left-[150px] w-[120px] h-[120px] bg-white/70 rounded-full border border-[rgba(8,95,233,0.15)]" />
+  </div>
+</div>
+
+<style>
+  @keyframes cloud-drift {
+    0%   { transform: translate(0, 0); }
+    25%  { transform: translate(12px, -6px); }
+    50%  { transform: translate(-8px, 4px); }
+    75%  { transform: translate(6px, 8px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  .cloud-drift {
+    animation: cloud-drift linear infinite;
+  }
+</style>

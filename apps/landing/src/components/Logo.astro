@@ -1,0 +1,14 @@
+---
+interface Props {
+  class?: string;
+  iconOnly?: boolean;
+  imgSize?: number;
+}
+
+const { class: className = '', iconOnly = false, imgSize = 28 } = Astro.props;
+---
+
+<a href="/" class:list={["flex items-center gap-2 no-underline", className]}>
+  <img src="/favicon.png" alt="Airstrip" width={imgSize} height={imgSize} />
+  {!iconOnly && <span class={`font-semibold text-slate-800 text-[24px]`}>Airstrip</span>}
+</a>
