@@ -164,8 +164,14 @@ const EmployeeRow = ({ item, onUpdate, onToggleHidden, onRemove, monthLabels }) 
           disabled={item.hidden}
         />
         <span className="text-gray-400 text-xs">/mo</span>
-        <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
-          = {formatCurrency(item.salary * 1.15)} all-in
+        <span className="relative group/tooltip">
+          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded cursor-help">
+            = {formatCurrency(item.salary * 1.15)} loaded
+          </span>
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 pointer-events-none z-50">
+            Fully loaded = base salary + ~15% for benefits, taxes, etc.
+            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></span>
+          </span>
         </span>
         <span className="flex-1" />
         <button
@@ -564,7 +570,7 @@ export default function CashflowModel() {
     capitalInjection: { label: 'Capital Injection', color: '#22c55e', hoverColor: '#16a34a', type: 'inflow' },
     totalInflows: { label: 'Total Inflows', color: '#22c55e', hoverColor: '#16a34a', type: 'inflow' },
     // Outflows (red)
-    payroll: { label: 'Payroll (All-In)', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
+    payroll: { label: 'Payroll (Fully Loaded)', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
     recurringExpenses: { label: 'Recurring Expenses', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
     oneTimeExpenses: { label: 'One-Time Expenses', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
     variableExpenses: { label: 'Variable Expenses', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
@@ -2078,7 +2084,7 @@ export default function CashflowModel() {
                 {calculations.map((_, i) => <td key={i} className={i === selectedMonthIndex ? 'bg-red-600' : ''}></td>)}
               </tr>
               <tr onClick={() => setSelectedChartMetric('payroll')} className={`group ${selectedChartMetric === 'payroll' ? 'bg-red-600' : 'hover:bg-red-50'}`}>
-                <td className={`py-1 pl-6 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'payroll' ? 'bg-red-600 text-white' : 'bg-white group-hover:bg-red-50 hover:text-blue-600'}`}>Payroll (All-In)</td>
+                <td className={`py-1 pl-6 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'payroll' ? 'bg-red-600 text-white' : 'bg-white group-hover:bg-red-50 hover:text-blue-600'}`}>Payroll (Fully Loaded)</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 cursor-default ${selectedChartMetric === 'payroll' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{formatCurrency(d.payroll)}</td>
                 ))}
