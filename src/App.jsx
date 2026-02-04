@@ -1991,7 +1991,7 @@ export default function CashflowModel() {
             <ResponsiveContainer width="100%" height={400}>
               <BarChart
                   data={calculations}
-                  margin={{ top: 10, right: 10, left: -10, bottom: -10 }}
+                  margin={{ top: 10, right: 10, left: -15, bottom: -10 }}
                   onMouseMove={(state) => state.activeTooltipIndex !== undefined && setActiveBarIndex(state.activeTooltipIndex)}
                   onMouseLeave={() => setActiveBarIndex(null)}
                   onClick={(state) => {
