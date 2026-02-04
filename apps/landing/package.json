@@ -9,6 +9,7 @@
     "preview": "astro preview"
   },
   "dependencies": {
+    "@astrojs/node": "^8",
     "astro": "^4.4.0"
   },
   "devDependencies": {
