@@ -279,8 +279,8 @@ const SectionHeader = ({ title, hoverBackgroundColor = 'hover:bg-gray-50', secti
   </div>
 );
 
-const SidebarBox = ({ title, section, icon, badge, expanded, onToggle, children, dotColor }) => (
-  <div className="rounded-lg border border-gray-200 bg-white" style={{ boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)' }}>
+const SidebarBox = ({ title, section, icon, badge, count, expanded, onToggle, children, dotColor }) => (
+  <div className={`rounded-lg border bg-white ${expanded ? 'border-gray-200' : 'border-gray-200 hover:border-transparent hover:ring-2 hover:ring-blue-500'} ${count !== undefined && count === 0 && !expanded ? 'opacity-70 hover:opacity-100' : ''}`} style={{ boxShadow: expanded ? '0 1px 2px 0 rgb(0 0 0 / 0.05)' : undefined }}>
     <button
       onClick={() => onToggle(section)}
       className={`flex ${expanded ? 'border-b border-gray-200' : ''} px-2.5 py-1.5 text-[0.8rem] items-center gap-2 w-full text-left font-medium text-gray-700 hover:text-gray`}
@@ -288,6 +288,11 @@ const SidebarBox = ({ title, section, icon, badge, expanded, onToggle, children,
       {dotColor && <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: dotColor }} />}
       {icon && React.createElement(icon, { size: 12, className: 'text-gray-400' })}
       <span className="flex-1">{title}</span>
+      {count > 0 && (
+        <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
+          {count}
+        </span>
+      )}
       {badge > 0 && (
         <span className="px-1 py-0.5 text-xs bg-amber-100 text-amber-700 rounded">
           {badge}
@@ -502,12 +507,7 @@ export default function CashflowModel() {
     refunds: [],
     ownersDraw: [],
     owners401k: [],
-    estimatedTaxes: [
-      { id: 1, description: 'Q1 Estimated Tax', month: 3, amount: 0, hidden: false },
-      { id: 2, description: 'Q2 Estimated Tax', month: 5, amount: 0, hidden: false },
-      { id: 3, description: 'Q3 Estimated Tax', month: 8, amount: 0, hidden: false },
-      { id: 4, description: 'Q4 Estimated Tax', month: 11, amount: 0, hidden: false },
-    ],
+    estimatedTaxes: [],
     // Chart settings
     chartYMin: null,
     chartYMax: null,
@@ -1212,7 +1212,7 @@ export default function CashflowModel() {
                   section="initialCash"
                   expanded={expandedSections.initialCash}
                   onToggle={toggleSection}
-                  dotColor="#22c55e"
+                  dotColor="#34d399"
                 >
                   <InputField
                     label="Amount"
@@ -1229,7 +1229,7 @@ export default function CashflowModel() {
                   section="mrr"
                   expanded={expandedSections.mrr}
                   onToggle={toggleSection}
-                  dotColor="#6b7280"
+                  dotColor="#10b981"
                 >
                   <div className="grid grid-cols-2 gap-2">
                     <InputField
@@ -1284,7 +1284,7 @@ export default function CashflowModel() {
                   section="additionalRevenue"
                   expanded={expandedSections.additionalRevenue}
                   onToggle={toggleSection}
-                  dotColor="#8b5cf6"
+                  dotColor="#059669"
                 >
                   <div className="grid grid-cols-2 gap-2">
                     <InputField
@@ -1309,9 +1309,10 @@ export default function CashflowModel() {
                   title="Capital Injections"
                   section="capitalInjections"
                   badge={hiddenCounts.capitalInjections}
+                  count={state.capitalInjections.length}
                   expanded={expandedSections.capitalInjections}
                   onToggle={toggleSection}
-                  dotColor="#3b82f6"
+                  dotColor="#047857"
                 >
                   <div className="space-y-1">
                     {state.capitalInjections.map(item => (
@@ -1347,9 +1348,10 @@ export default function CashflowModel() {
                   title="Annual Plan Revenue"
                   section="annualPlanRevenue"
                   badge={hiddenCounts.annualPlanRevenue}
+                  count={state.annualPlanRevenue.length}
                   expanded={expandedSections.annualPlanRevenue}
                   onToggle={toggleSection}
-                  dotColor="#a855f7"
+                  dotColor="#065f46"
                 >
                   <div className="space-y-1">
                     {state.annualPlanRevenue.map(item => (
@@ -1393,6 +1395,7 @@ export default function CashflowModel() {
                   title="Payroll"
                   section="payroll"
                   badge={hiddenCounts.employees}
+                  count={state.employees.length}
                   expanded={expandedSections.payroll}
                   onToggle={toggleSection}
                   dotColor="#ef4444"
@@ -1423,9 +1426,10 @@ export default function CashflowModel() {
                   title="Recurring Expenses"
                   section="recurring"
                   badge={hiddenCounts.recurringExpenses}
+                  count={state.recurringExpenses.length}
                   expanded={expandedSections.recurring}
                   onToggle={toggleSection}
-                  dotColor="#f97316"
+                  dotColor="#dc2626"
                 >
                   <div className="space-y-1">
                     {state.recurringExpenses.map(exp => (
@@ -1455,9 +1459,10 @@ export default function CashflowModel() {
                   title="One-Time Expenses"
                   section="onetime"
                   badge={hiddenCounts.oneTimeExpenses}
+                  count={state.oneTimeExpenses.length}
                   expanded={expandedSections.onetime}
                   onToggle={toggleSection}
-                  dotColor="#f59e0b"
+                  dotColor="#b91c1c"
                 >
                   <div className="space-y-1">
                     {state.oneTimeExpenses.map(exp => (
@@ -1493,9 +1498,10 @@ export default function CashflowModel() {
                   title="Variable Expenses (% of MRR)"
                   section="variable"
                   badge={hiddenCounts.variableExpenses}
+                  count={state.variableExpenses.length}
                   expanded={expandedSections.variable}
                   onToggle={toggleSection}
-                  dotColor="#ec4899"
+                  dotColor="#991b1b"
                 >
                   <div className="space-y-1">
                     {state.variableExpenses.map(exp => (
@@ -1525,9 +1531,10 @@ export default function CashflowModel() {
                   title="Refunds (monthly)"
                   section="refunds"
                   badge={hiddenCounts.refunds}
+                  count={state.refunds.length}
                   expanded={expandedSections.refunds}
                   onToggle={toggleSection}
-                  dotColor="#f43f5e"
+                  dotColor="#fb7185"
                 >
                   <div className="space-y-1">
                     {state.refunds.map(exp => (
@@ -1557,9 +1564,10 @@ export default function CashflowModel() {
                   title="Recurring Owner's Draw"
                   section="ownersDraw"
                   badge={hiddenCounts.ownersDraw}
+                  count={state.ownersDraw.length}
                   expanded={expandedSections.ownersDraw}
                   onToggle={toggleSection}
-                  dotColor="#6366f1"
+                  dotColor="#f43f5e"
                 >
                   <div className="space-y-1">
                     {state.ownersDraw.map(exp => (
@@ -1589,9 +1597,10 @@ export default function CashflowModel() {
                   title="401k Contributions (by month)"
                   section="owners401k"
                   badge={hiddenCounts.owners401k}
+                  count={state.owners401k.length}
                   expanded={expandedSections.owners401k}
                   onToggle={toggleSection}
-                  dotColor="#14b8a6"
+                  dotColor="#e11d48"
                 >
                   <div className="space-y-2">
                     {state.owners401k.map(exp => (
@@ -1627,9 +1636,10 @@ export default function CashflowModel() {
                   title="Estimated Tax Payments"
                   section="estimatedTaxes"
                   badge={hiddenCounts.estimatedTaxes}
+                  count={state.estimatedTaxes.length}
                   expanded={expandedSections.estimatedTaxes}
                   onToggle={toggleSection}
-                  dotColor="#eab308"
+                  dotColor="#be123c"
                 >
                   <div className="space-y-2">
                     <p className="text-xs text-gray-500 mb-1">Based on prior year profits</p>
