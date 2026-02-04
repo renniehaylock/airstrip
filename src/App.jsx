@@ -1262,7 +1262,7 @@ export default function CashflowModel() {
                   </div>
                   <div className="mt-2 pt-2 border-t border-gray-200 flex items-center justify-between text-xs">
                     <span className="text-gray-500 flex items-center gap-1">
-                      Steady State MRR
+                      Maximum MRR
                       <span className="relative group">
                         <Info size={12} className="text-gray-400 cursor-help" />
                         <span className="absolute left-full top-1/2 -translate-y-1/2 ml-1 px-2 py-1.5 bg-gray-800 text-white text-xs rounded w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-10">
@@ -1270,9 +1270,12 @@ export default function CashflowModel() {
                         </span>
                       </span>
                     </span>
-                    <span className="font-medium text-gray-700">
+                    <span className="text-gray-700">
                       {state.monthlyChurnRate > 0
-                        ? formatCurrency((state.newCustomersPerMonth / (state.monthlyChurnRate / 100)) * state.arpu)
+                        ? <>
+                            <span className="font-medium">{formatCurrency((state.newCustomersPerMonth / (state.monthlyChurnRate / 100)) * state.arpu)}</span>
+                            <span className="italic text-gray-500 font-normal"> ({formatCurrency((state.newCustomersPerMonth / (state.monthlyChurnRate / 100)) * state.arpu * 12)} ARR)</span>
+                          </>
                         : '∞'}
                     </span>
                   </div>
