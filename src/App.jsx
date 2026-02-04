@@ -352,6 +352,7 @@ const encodeState = (state) => {
   // Chart settings
   if (state.chartYMin !== null) params.set('cymin', state.chartYMin);
   if (state.chartYMax !== null) params.set('cymax', state.chartYMax);
+  if (state.numberOfMonths !== 24) params.set('nm', state.numberOfMonths);
 
   return params.toString();
 };
@@ -460,6 +461,7 @@ const decodeState = (search, defaultState) => {
     // Chart settings
     if (params.has('cymin')) state.chartYMin = parseFloat(params.get('cymin'));
     if (params.has('cymax')) state.chartYMax = parseFloat(params.get('cymax'));
+    if (params.has('nm')) state.numberOfMonths = parseInt(params.get('nm'));
 
     return state;
   } catch (e) {
@@ -469,20 +471,9 @@ const decodeState = (search, defaultState) => {
 };
 
 export default function CashflowModel() {
-  // Date helpers
-  const getMonthLabels = () => {
-    const labels = [];
-    const now = new Date();
-    for (let i = 0; i < 24; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-      labels.push(d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }));
-    }
-    return labels;
-  };
-  const monthLabels = getMonthLabels();
-
   // Default state factory
   const getDefaultState = () => ({
+    numberOfMonths: 24,
     initialCash: 0,
     startingMRR: 0,
     newCustomersPerMonth: 10,
@@ -538,6 +529,17 @@ export default function CashflowModel() {
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(null);
   const [selectedChartMetric, setSelectedChartMetric] = useState('cashBalance');
   const tableContainerRef = useRef(null);
+
+  // Generate month labels based on numberOfMonths
+  const monthLabels = useMemo(() => {
+    const labels = [];
+    const now = new Date();
+    for (let i = 0; i < state.numberOfMonths; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      labels.push(d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }));
+    }
+    return labels;
+  }, [state.numberOfMonths]);
 
   // Chart metric configuration
   const chartMetrics = {
@@ -648,6 +650,7 @@ export default function CashflowModel() {
     estimatedTaxes: false,
     capitalInjections: false,
     annualPlanRevenue: false,
+    modelSettings: false,
     chartSettings: false,
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -909,7 +912,7 @@ export default function CashflowModel() {
     let currentMRR = state.startingMRR;
     let currentAdditionalRevenue = state.additionalRevenue;
 
-    for (let month = 0; month < 24; month++) {
+    for (let month = 0; month < state.numberOfMonths; month++) {
       // MRR Calculation
       if (month > 0) {
         const churnLoss = currentMRR * (state.monthlyChurnRate / 100);
@@ -1606,6 +1609,30 @@ export default function CashflowModel() {
             <SectionHeader title="Settings" hoverBackgroundColor="hover:bg-gray-100" section="settings" icon={Settings} expanded={expandedSections.settings} onToggle={toggleSection} />
             {expandedSections.settings && (
               <div className="space-y-2 p-3 bg-gray-50">
+                {/* Model Settings */}
+                <SidebarBox
+                  title="Model Settings"
+                  section="modelSettings"
+                  expanded={expandedSections.modelSettings}
+                  onToggle={toggleSection}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-gray-600 w-20">Months</label>
+                      <input
+                        type="number"
+                        min="6"
+                        max="60"
+                        value={state.numberOfMonths}
+                        onChange={(e) => updateState('numberOfMonths', parseInt(e.target.value) || 24)}
+                        onBlur={(e) => updateState('numberOfMonths', Math.max(6, Math.min(60, parseInt(e.target.value) || 24)))}
+                        className="flex-1 px-2 py-1 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="text-xs text-gray-400">Forecast period (6-60 months)</div>
+                  </div>
+                </SidebarBox>
+
                 {/* Chart Settings */}
                 <SidebarBox
                   title="Chart Settings"
@@ -1811,9 +1838,9 @@ export default function CashflowModel() {
             </div>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
-            <div className="text-sm text-gray-500">Month 24 Balance</div>
-            <div className={`text-xl font-bold ${calculations[23]?.cashBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(calculations[23]?.cashBalance || 0)}
+            <div className="text-sm text-gray-500">Month {state.numberOfMonths} Balance</div>
+            <div className={`text-xl font-bold ${calculations[state.numberOfMonths - 1]?.cashBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(calculations[state.numberOfMonths - 1]?.cashBalance || 0)}
             </div>
           </div>
           <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
