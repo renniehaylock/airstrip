@@ -4,36 +4,81 @@ This file provides guidance to Claude Code (claude.ai/claude-code) when working 
 
 ## Project Overview
 
-Cashflow Model is a 24-month interactive cashflow forecasting tool for SaaS business financial planning. It's a single-page React application that allows users to model revenue streams, expenses, and visualize cash runway.
+Airstrip is a 24-month interactive cashflow forecasting tool for SaaS business financial planning. This is a **pnpm monorepo** containing:
+
+- **@airstrip/web** - The main React forecasting application
+- **@airstrip/landing** - Marketing/landing page (Astro)
+
+## Monorepo Structure
+
+```
+airstrip/
+├── apps/
+│   ├── web/                 # React app → app.airstrip.com
+│   │   ├── src/
+│   │   │   ├── App.jsx      # Main application (~2000 lines)
+│   │   │   ├── main.jsx     # React entry point
+│   │   │   └── index.css    # Tailwind directives
+│   │   ├── public/
+│   │   ├── index.html
+│   │   ├── package.json
+│   │   ├── vite.config.js
+│   │   └── tailwind.config.js
+│   │
+│   └── landing/             # Astro landing page → airstrip.com
+│       ├── src/
+│       │   ├── layouts/
+│       │   └── pages/
+│       ├── public/
+│       ├── package.json
+│       └── astro.config.mjs
+│
+├── packages/                 # Shared packages (future)
+├── package.json              # Root workspace config
+├── pnpm-workspace.yaml
+└── CLAUDE.md
+```
 
 ## Tech Stack
 
-- **Framework**: React 18.2 with hooks (useState, useMemo, useEffect, useCallback, useRef)
+### Web App (@airstrip/web)
+- **Framework**: React 18.2 with hooks
 - **Build Tool**: Vite 5.0
-- **Styling**: Tailwind CSS 3.4 (utility-first, no custom CSS)
-- **Charts**: Recharts 2.10 for visualization
+- **Styling**: Tailwind CSS 3.4
+- **Charts**: Recharts 2.10
 - **Icons**: Lucide React
 
-## Project Structure
-
-```
-src/
-├── App.jsx       # Entire application (monolithic component, ~1085 lines)
-├── main.jsx      # React entry point
-└── index.css     # Tailwind directives only
-```
-
-This is a monolithic single-file application. All components, logic, and state management live in `App.jsx`.
+### Landing Page (@airstrip/landing)
+- **Framework**: Astro 4.x
+- **Styling**: Tailwind CSS 3.4
 
 ## Development Commands
 
 ```bash
-npm run dev      # Start development server (port 5173)
-npm run build    # Production build to dist/
-npm run preview  # Preview production build
+# Install dependencies (from root)
+pnpm install
+
+# Run web app (port 5173)
+pnpm dev
+
+# Run landing page (port 4321)
+pnpm dev:landing
+
+# Build all
+pnpm build
+
+# Build specific app
+pnpm build:web
+pnpm build:landing
 ```
 
-## Architecture Patterns
+## Railway Deployment
+
+Each app is deployed as a separate Railway service:
+- **Web app**: Root Directory = `apps/web`
+- **Landing page**: Root Directory = `apps/landing`
+
+## Web App Architecture
 
 ### State Management
 - Single monolithic state object via `useState`
@@ -93,6 +138,7 @@ Cash Balance = Previous Balance + Net Cashflow
 
 ### UI Components (internal to App.jsx)
 - `SectionHeader` - Collapsible section with icon/badge
+- `SidebarBox` - Collapsible settings box with count badge
 - `InputField` - Labeled input with prefix/suffix
 - `ExpenseRow` - Dynamic expense editor
 - `CustomTooltip` - Recharts tooltip
@@ -104,13 +150,6 @@ Cash Balance = Previous Balance + Net Cashflow
 - Red: outflows/negative values
 - Amber: warnings
 - Gray: text/backgrounds
-
-## Testing
-
-No testing infrastructure currently exists. When adding tests:
-- Consider Vitest for Vite compatibility
-- Focus on calculation logic in the `useMemo` block
-- Test URL encoding/decoding functions
 
 ## Common Tasks
 

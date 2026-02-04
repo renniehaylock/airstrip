@@ -1,0 +1,92 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Airstrip - Cashflow Forecasting for SaaS">
+  <div class="min-h-screen">
+    <!-- Header -->
+    <header class="border-b border-gray-200">
+      <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <img src="/favicon.png" alt="Airstrip" class="w-6 h-6" />
+          <span class="text-xl font-bold">Airstrip</span>
+        </div>
+        <a
+          href="https://app.airstrip.com"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        >
+          Open App
+        </a>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="max-w-6xl mx-auto px-4 py-24 text-center">
+      <h1 class="text-5xl font-bold mb-6 text-gray-900">
+        Know Your Runway.<br />Plan With Confidence.
+      </h1>
+      <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+        Simple 24-month cashflow forecasting for SaaS founders. Model your MRR, track expenses, and never be surprised by your bank balance again.
+      </p>
+      <div class="flex gap-4 justify-center">
+        <a
+          href="https://app.airstrip.com"
+          class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
+        >
+          Start Forecasting — Free
+        </a>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="bg-gray-50 py-24">
+      <div class="max-w-6xl mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-16">Everything you need to plan ahead</h2>
+        <div class="grid md:grid-cols-3 gap-8">
+          <div class="bg-white p-6 rounded-xl border border-gray-200">
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+              <span class="text-green-600 text-2xl">📈</span>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">MRR Modeling</h3>
+            <p class="text-gray-600">Project your recurring revenue with customer growth and churn rates. See your steady-state MRR instantly.</p>
+          </div>
+          <div class="bg-white p-6 rounded-xl border border-gray-200">
+            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+              <span class="text-red-600 text-2xl">💸</span>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Expense Tracking</h3>
+            <p class="text-gray-600">Payroll, recurring costs, one-time expenses, and variable costs. All in one place with full visibility.</p>
+          </div>
+          <div class="bg-white p-6 rounded-xl border border-gray-200">
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+              <span class="text-blue-600 text-2xl">🎯</span>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Runway Clarity</h3>
+            <p class="text-gray-600">See exactly when you'll run out of cash. Compare scenarios and make informed decisions.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-24">
+      <div class="max-w-4xl mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold mb-4">Ready to see your financial future?</h2>
+        <p class="text-xl text-gray-600 mb-8">No signup required. Your data stays in your browser.</p>
+        <a
+          href="https://app.airstrip.com"
+          class="inline-block px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
+        >
+          Launch Airstrip
+        </a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-200 py-8">
+      <div class="max-w-6xl mx-auto px-4 text-center text-gray-500 text-sm">
+        <p>&copy; {new Date().getFullYear()} Airstrip. Built for SaaS founders.</p>
+      </div>
+    </footer>
+  </div>
+</Layout>
