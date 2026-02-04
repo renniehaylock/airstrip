@@ -283,7 +283,7 @@ const SidebarBox = ({ title, section, icon, badge, expanded, onToggle, children,
   <div className="rounded-lg border border-gray-200 bg-white" style={{ boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)' }}>
     <button
       onClick={() => onToggle(section)}
-      className={`flex ${expanded ? 'border-b border-gray-200' : ''} px-2 py-1.5 text-xs items-center gap-1.5 w-full text-left font-medium text-gray-900 hover:text-gray`}
+      className={`flex ${expanded ? 'border-b border-gray-200' : ''} px-2.5 py-1.5 text-[0.8rem] items-center gap-2 w-full text-left font-medium text-gray-700 hover:text-gray`}
     >
       {dotColor && <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: dotColor }} />}
       {icon && React.createElement(icon, { size: 12, className: 'text-gray-400' })}
