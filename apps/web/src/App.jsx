@@ -2071,7 +2071,12 @@ export default function CashflowModel() {
                   }}
                 >
                 <XAxis dataKey="month" tick={{ fontSize: 10 }} interval={0} angle={-45} textAnchor="end" height={60} />
-                <YAxis tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} tick={{ fontSize: 11 }} domain={[effectiveYMin, effectiveYMax]} allowDataOverflow={true} />
+                <YAxis tickFormatter={(v) => {
+                  const absV = Math.abs(v);
+                  if (absV >= 1000000) return `$${(v/1000000).toFixed(1)}M`;
+                  if (absV >= 1000) return `$${(v/1000).toFixed(1)}k`;
+                  return `$${v}`;
+                }} tick={{ fontSize: 11 }} domain={[effectiveYMin, effectiveYMax]} allowDataOverflow={true} />
                 <Tooltip content={<CustomTooltip selectedMetric={selectedChartMetric} metricConfig={chartMetrics} />} cursor={{ fill: '#F3F4F6', fillOpacity: 1 }} />
                 <ReferenceLine y={0} stroke="#9CA3AF" />
                 <Bar
