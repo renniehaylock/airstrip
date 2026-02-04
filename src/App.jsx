@@ -104,7 +104,7 @@ const ExpenseRow = ({ item, onUpdate, onToggleHidden, onRemove, fields }) => {
   );
 };
 
-const EmployeeRow = ({ item, onUpdate, onToggleHidden, onRemove, monthLabels }) => {
+const EmployeeRow = ({ item, onUpdate, onToggleHidden, onRemove, monthLabels, fullyLoadedMultiplier = 1.15 }) => {
   // Local state for deferred updates (update on blur)
   const [localValues, setLocalValues] = React.useState({
     name: item.name,
@@ -143,7 +143,7 @@ const EmployeeRow = ({ item, onUpdate, onToggleHidden, onRemove, monthLabels }) 
 
   return (
     <div className={`space-y-2 py-2.5 border-b border-gray-200 ${item.hidden ? 'opacity-50' : ''}`}>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         <input
           type="text"
           value={localValues.name}
@@ -164,12 +164,12 @@ const EmployeeRow = ({ item, onUpdate, onToggleHidden, onRemove, monthLabels }) 
           disabled={item.hidden}
         />
         <span className="text-gray-400 text-xs">/mo</span>
-        <span className="relative group/tooltip">
-          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded cursor-help">
-            = {formatCurrency(item.salary * 1.15)} loaded
+        <span className="relative group/tooltip min-w-0">
+          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded cursor-help block truncate">
+            = {formatCurrency(item.salary * fullyLoadedMultiplier)} loaded
           </span>
-          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 pointer-events-none z-50">
-            Fully loaded = base salary + ~15% for benefits, taxes, etc.
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg w-[180px] text-center opacity-0 group-hover/tooltip:opacity-100 pointer-events-none z-50">
+            Fully loaded = base salary + {Math.round((fullyLoadedMultiplier - 1) * 100)}% for benefits, taxes, etc.
             <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></span>
           </span>
         </span>
@@ -360,6 +360,7 @@ const encodeState = (state) => {
   if (state.chartYMax !== null) params.set('cymax', state.chartYMax);
   if (state.numberOfMonths !== 24) params.set('nm', state.numberOfMonths);
   if (state.forecastStartDate) params.set('fsd', state.forecastStartDate);
+  if (state.fullyLoadedMultiplier !== 1.15) params.set('flm', state.fullyLoadedMultiplier);
 
   return params.toString();
 };
@@ -470,6 +471,7 @@ const decodeState = (search, defaultState) => {
     if (params.has('cymax')) state.chartYMax = parseFloat(params.get('cymax'));
     if (params.has('nm')) state.numberOfMonths = parseInt(params.get('nm'));
     if (params.has('fsd')) state.forecastStartDate = params.get('fsd');
+    if (params.has('flm')) state.fullyLoadedMultiplier = parseFloat(params.get('flm'));
 
     return state;
   } catch (e) {
@@ -511,6 +513,7 @@ export default function CashflowModel() {
     chartYMax: null,
     // Model settings
     forecastStartDate: null, // null = current month, or "YYYY-MM" string
+    fullyLoadedMultiplier: 1.15, // Multiplier for employee fully loaded cost (1.15 = 15% markup)
   });
 
   // Initialize state from URL or defaults
@@ -970,11 +973,11 @@ export default function CashflowModel() {
       // Total Revenue - MRR is separate from annual plan revenue
       const totalRevenue = currentMRR + currentAdditionalRevenue + annualPlanRev + capitalInj;
 
-      // Payroll (all-in = salary * 1.15) - exclude hidden, factor in start/end dates and severance
+      // Payroll (fully loaded = salary * multiplier) - exclude hidden, factor in start/end dates and severance
       const totalPayroll = state.employees
         .filter(emp => !emp.hidden)
         .reduce((sum, emp) => {
-          const allInSalary = emp.salary * 1.15;
+          const fullyLoadedSalary = emp.salary * state.fullyLoadedMultiplier;
 
           // Check if employee has started yet
           if (month < emp.startMonth) {
@@ -983,18 +986,18 @@ export default function CashflowModel() {
 
           // If no end date, employee is active indefinitely
           if (emp.endMonth === null || emp.endMonth === undefined) {
-            return sum + allInSalary;
+            return sum + fullyLoadedSalary;
           }
 
           // Employee is still active (before or at end month)
           if (month <= emp.endMonth) {
-            return sum + allInSalary;
+            return sum + fullyLoadedSalary;
           }
 
           // Check if in severance period (months after endMonth)
           const monthsAfterEnd = month - emp.endMonth;
           if (monthsAfterEnd <= emp.severanceMonths) {
-            return sum + allInSalary;
+            return sum + fullyLoadedSalary;
           }
 
           // Employee has ended and severance is complete
@@ -1387,6 +1390,7 @@ export default function CashflowModel() {
                         onToggleHidden={() => toggleHidden('employees', emp.id)}
                         onRemove={() => removeArrayItem('employees', emp.id)}
                         monthLabels={monthLabels}
+                        fullyLoadedMultiplier={state.fullyLoadedMultiplier}
                       />
                     ))}
                     <button
@@ -1658,7 +1662,7 @@ export default function CashflowModel() {
                 >
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <label className="text-xs text-gray-600 w-20">Start Date</label>
+                      <label className="text-xs text-gray-600 w-[90px]">Start Date</label>
                       <input
                         type="month"
                         value={state.forecastStartDate || new Date().toISOString().slice(0, 7)}
@@ -1667,7 +1671,7 @@ export default function CashflowModel() {
                       />
                     </div>
                     <div className="flex items-center gap-2">
-                      <label className="text-xs text-gray-600 w-20">Months</label>
+                      <label className="text-xs text-gray-600 w-[90px]">Months</label>
                       <input
                         type="number"
                         min="6"
@@ -1678,15 +1682,29 @@ export default function CashflowModel() {
                         className="flex-1 px-2 py-1 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
                     </div>
-                    {state.forecastStartDate && (
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-gray-600 w-[90px]">Payroll Markup</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value={Math.round((state.fullyLoadedMultiplier - 1) * 100)}
+                        onChange={(e) => updateState('fullyLoadedMultiplier', 1 + (parseFloat(e.target.value) || 15) / 100)}
+                        onBlur={(e) => updateState('fullyLoadedMultiplier', 1 + Math.max(0, Math.min(100, parseFloat(e.target.value) || 15)) / 100)}
+                        className="flex-1 px-2 py-1 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                      <span className="text-xs text-gray-400">%</span>
+                    </div>
+                    {(state.forecastStartDate || state.fullyLoadedMultiplier !== 1.15) && (
                       <button
-                        onClick={() => updateState('forecastStartDate', null)}
+                        onClick={() => { updateState('forecastStartDate', null); updateState('fullyLoadedMultiplier', 1.15); }}
                         className="text-xs text-blue-500 hover:text-blue-700"
                       >
-                        Reset to Current Month
+                        Reset to Defaults
                       </button>
                     )}
-                    <div className="text-xs text-gray-400">Forecast period (6-60 months)</div>
+                    <div className="text-xs text-gray-400">Added to base salary for benefits, taxes, etc.</div>
                   </div>
                 </SidebarBox>
 
