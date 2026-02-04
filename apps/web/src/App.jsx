@@ -1117,10 +1117,10 @@ export default function CashflowModel() {
         <div className={`h-full flex flex-col bg-gray-50 ${mobileMenuOpen ? 'w-full' : ''}`} style={{ width: mobileMenuOpen ? '100%' : sidebarWidth }}>
           {/* App Header */}
           <div className="px-3 h-12 bg-white border-b border-gray-200 flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center gap-1">
+            <a href="https://getairstrip.com" className="flex items-center gap-1 no-underline">
               <img src="/airstrip-favicon.png" alt="Airstrip" className="w-4 h-4" />
               <h1 className="text-lg font-bold text-gray-800">Airstrip</h1>
-            </div>
+            </a>
             {/* Close button - different for mobile vs desktop */}
             {mobileMenuOpen ? (
               <button
