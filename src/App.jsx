@@ -2068,7 +2068,7 @@ export default function CashflowModel() {
         {/* Data Table */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 mb-4">
           <div
-            className="px-3 py-2.5 border-b border-gray-200 flex items-center justify-between cursor-pointer hover:bg-gray-50"
+            className={`px-3 py-2.5 flex items-center justify-between cursor-pointer hover:bg-gray-50 ${expandedSections.monthlyBreakdown ? 'border-b border-gray-200' : ''}`}
             onClick={() => toggleSection('monthlyBreakdown')}
           >
             <h2 className="text-sm font-semibold text-gray-700">Monthly Breakdown</h2>
@@ -2208,7 +2208,7 @@ export default function CashflowModel() {
         {/* MRR Metrics Table */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
           <div
-            className="px-3 py-2.5 border-b border-gray-200 flex items-center justify-between cursor-pointer hover:bg-gray-50"
+            className={`px-3 py-2.5 flex items-center justify-between cursor-pointer hover:bg-gray-50 ${expandedSections.mrrMetrics ? 'border-b border-gray-200' : ''}`}
             onClick={() => toggleSection('mrrMetrics')}
           >
             <h2 className="text-sm font-semibold text-gray-700">MRR Metrics</h2>
