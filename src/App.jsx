@@ -666,6 +666,8 @@ export default function CashflowModel() {
     annualPlanRevenue: false,
     modelSettings: false,
     chartSettings: false,
+    monthlyBreakdown: true,
+    mrrMetrics: true,
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(500);
@@ -925,13 +927,23 @@ export default function CashflowModel() {
     let runningCash = state.initialCash;
     let currentMRR = state.startingMRR;
     let currentAdditionalRevenue = state.additionalRevenue;
+    let currentCustomers = state.arpu > 0 ? Math.round(state.startingMRR / state.arpu) : 0;
 
     for (let month = 0; month < state.numberOfMonths; month++) {
-      // MRR Calculation
+      // MRR and Customer Calculations
+      let newCustomers = 0;
+      let churnedCustomers = 0;
+      let newRevenue = 0;
+      let churnedRevenue = 0;
+
       if (month > 0) {
-        const churnLoss = currentMRR * (state.monthlyChurnRate / 100);
-        const newRevenue = state.newCustomersPerMonth * state.arpu;
-        currentMRR = currentMRR - churnLoss + newRevenue;
+        churnedRevenue = currentMRR * (state.monthlyChurnRate / 100);
+        newRevenue = state.newCustomersPerMonth * state.arpu;
+        currentMRR = currentMRR - churnedRevenue + newRevenue;
+
+        newCustomers = state.newCustomersPerMonth;
+        churnedCustomers = Math.round(currentCustomers * (state.monthlyChurnRate / 100));
+        currentCustomers = currentCustomers - churnedCustomers + newCustomers;
       }
 
       // Additional revenue with growth (supports negative growth)
@@ -1045,6 +1057,12 @@ export default function CashflowModel() {
         totalOutflows: Math.round(totalOutflows),
         netCashflow: Math.round(netCashflow),
         cashBalance: Math.round(runningCash),
+        // MRR Metrics
+        newCustomers,
+        churnedCustomers,
+        totalCustomers: currentCustomers,
+        newRevenue: Math.round(newRevenue),
+        churnedRevenue: Math.round(churnedRevenue),
       });
     }
 
@@ -1217,7 +1235,7 @@ export default function CashflowModel() {
                   </div>
                   <div className="mt-2 pt-2 border-t border-gray-200 flex items-center justify-between text-xs">
                     <span className="text-gray-500 flex items-center gap-1">
-                      Terminal MRR
+                      Steady State MRR
                       <span className="relative group">
                         <Info size={12} className="text-gray-400 cursor-help" />
                         <span className="absolute left-full top-1/2 -translate-y-1/2 ml-1 px-2 py-1.5 bg-gray-800 text-white text-xs rounded w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-10">
@@ -1989,10 +2007,15 @@ export default function CashflowModel() {
         </div>
 
         {/* Data Table */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
-          <div className="px-3 py-2.5 border-b border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 mb-4">
+          <div
+            className="px-3 py-2.5 border-b border-gray-200 flex items-center justify-between cursor-pointer hover:bg-gray-50"
+            onClick={() => toggleSection('monthlyBreakdown')}
+          >
             <h2 className="text-sm font-semibold text-gray-700">Monthly Breakdown</h2>
+            {expandedSections.monthlyBreakdown ? <ChevronUp size={16} className="text-gray-500" /> : <ChevronDown size={16} className="text-gray-500" />}
           </div>
+          {expandedSections.monthlyBreakdown && (
           <div ref={tableContainerRef} className="overflow-x-auto" onClick={(e) => e.stopPropagation()}>
           <table className="w-full text-xs">
             <thead>
@@ -2120,6 +2143,92 @@ export default function CashflowModel() {
             </tbody>
           </table>
           </div>
+          )}
+        </div>
+
+        {/* MRR Metrics Table */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
+          <div
+            className="px-3 py-2.5 border-b border-gray-200 flex items-center justify-between cursor-pointer hover:bg-gray-50"
+            onClick={() => toggleSection('mrrMetrics')}
+          >
+            <h2 className="text-sm font-semibold text-gray-700">MRR Metrics</h2>
+            {expandedSections.mrrMetrics ? <ChevronUp size={16} className="text-gray-500" /> : <ChevronDown size={16} className="text-gray-500" />}
+          </div>
+          {expandedSections.mrrMetrics && (
+          <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-2 pl-3 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 font-medium text-gray-600 min-w-[180px]">Metric</th>
+                {calculations.map((d, i) => (
+                  <th key={i} className={`text-center py-2 px-1 font-medium min-w-[70px] ${i === selectedMonthIndex ? 'bg-gray-700 text-white' : 'text-gray-600'}`}>{d.month}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {/* Customers Section */}
+              <tr className="bg-slate-100">
+                <td className="py-2 pl-3 pr-2 font-semibold text-slate-700 sticky left-0 z-10 relative bg-slate-100 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">CUSTOMERS</td>
+                {calculations.map((_, i) => <td key={i} className={i === selectedMonthIndex ? 'bg-slate-600' : ''}></td>)}
+              </tr>
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">New Customers</td>
+                {calculations.map((d, i) => (
+                  <td key={i} className={`text-center py-1 px-1 cursor-default ${i === selectedMonthIndex ? 'bg-slate-600 text-white' : 'text-green-600'}`}>{d.newCustomers > 0 ? `+${d.newCustomers}` : d.newCustomers}</td>
+                ))}
+              </tr>
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Churned Customers</td>
+                {calculations.map((d, i) => (
+                  <td key={i} className={`text-center py-1 px-1 cursor-default ${i === selectedMonthIndex ? 'bg-slate-600 text-white' : 'text-red-600'}`}>{d.churnedCustomers > 0 ? `-${d.churnedCustomers}` : d.churnedCustomers}</td>
+                ))}
+              </tr>
+              <tr className="font-semibold bg-slate-200">
+                <td className="py-1 pl-3 pr-2 sticky left-0 z-10 relative bg-slate-200 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Total Customers</td>
+                {calculations.map((d, i) => (
+                  <td key={i} className={`text-center py-1 px-1 cursor-default ${i === selectedMonthIndex ? 'bg-slate-700 text-white' : 'text-slate-700'}`}>{d.totalCustomers}</td>
+                ))}
+              </tr>
+
+              {/* Revenue Section */}
+              <tr className="bg-slate-100">
+                <td className="py-2 pl-3 pr-2 font-semibold text-slate-700 sticky left-0 z-10 relative bg-slate-100 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">REVENUE</td>
+                {calculations.map((_, i) => <td key={i} className={i === selectedMonthIndex ? 'bg-slate-600' : ''}></td>)}
+              </tr>
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">New Revenue</td>
+                {calculations.map((d, i) => (
+                  <td key={i} className={`text-center py-1 px-1 cursor-default ${i === selectedMonthIndex ? 'bg-slate-600 text-white' : 'text-green-600'}`}>{d.newRevenue > 0 ? `+${formatCurrency(d.newRevenue)}` : formatCurrency(d.newRevenue)}</td>
+                ))}
+              </tr>
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Churned Revenue</td>
+                {calculations.map((d, i) => (
+                  <td key={i} className={`text-center py-1 px-1 cursor-default ${i === selectedMonthIndex ? 'bg-slate-600 text-white' : 'text-red-600'}`}>{d.churnedRevenue > 0 ? `-${formatCurrency(d.churnedRevenue)}` : formatCurrency(d.churnedRevenue)}</td>
+                ))}
+              </tr>
+              <tr className="font-semibold bg-slate-200">
+                <td className="py-1 pl-3 pr-2 sticky left-0 z-10 relative bg-slate-200 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Net New Revenue</td>
+                {calculations.map((d, i) => {
+                  const netRevenue = d.newRevenue - d.churnedRevenue;
+                  return (
+                    <td key={i} className={`text-center py-1 px-1 cursor-default ${i === selectedMonthIndex ? 'bg-slate-700 text-white' : (netRevenue >= 0 ? 'text-green-700' : 'text-red-700')}`}>
+                      {netRevenue >= 0 ? `+${formatCurrency(netRevenue)}` : formatCurrency(netRevenue)}
+                    </td>
+                  );
+                })}
+              </tr>
+              <tr className="font-bold bg-slate-300">
+                <td className="py-1 pl-3 pr-2 sticky left-0 z-10 relative bg-slate-300 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Total MRR</td>
+                {calculations.map((d, i) => (
+                  <td key={i} className={`text-center py-1 px-1 cursor-default ${i === selectedMonthIndex ? 'bg-slate-800 text-white' : 'text-slate-800'}`}>{formatCurrency(d.mrr)}</td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          )}
         </div>
 
           </div>
