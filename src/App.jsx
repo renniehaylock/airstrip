@@ -2097,24 +2097,30 @@ export default function CashflowModel() {
                   <td key={i} className={`text-center py-1 px-1 cursor-default ${selectedChartMetric === 'mrr' ? (i === selectedMonthIndex ? 'bg-green-700 text-white' : 'bg-green-600 text-white') : (i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600')}`}>{formatCurrency(d.mrr)}</td>
                 ))}
               </tr>
+              {state.additionalRevenue > 0 && (
               <tr onClick={() => handleMetricClick('additionalRevenue')} className={`group ${selectedChartMetric === 'additionalRevenue' ? 'bg-green-600' : 'hover:bg-green-50'}`}>
                 <td className={`py-1 pl-6 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'additionalRevenue' ? 'bg-green-600 text-white' : 'bg-white group-hover:bg-green-50 hover:text-blue-600'}`}>Additional Revenue</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 cursor-default ${selectedChartMetric === 'additionalRevenue' ? (i === selectedMonthIndex ? 'bg-green-700 text-white' : 'bg-green-600 text-white') : (i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600')}`}>{formatCurrency(d.additionalRevenue)}</td>
                 ))}
               </tr>
+              )}
+              {state.annualPlanRevenue.length > 0 && (
               <tr onClick={() => handleMetricClick('annualPlanRevenue')} className={`group ${selectedChartMetric === 'annualPlanRevenue' ? 'bg-green-600' : 'hover:bg-green-50'}`}>
                 <td className={`py-1 pl-6 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'annualPlanRevenue' ? 'bg-green-600 text-white' : 'bg-white group-hover:bg-green-50 hover:text-blue-600'}`}>Annual Plan Revenue</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 cursor-default ${selectedChartMetric === 'annualPlanRevenue' ? (i === selectedMonthIndex ? 'bg-green-700 text-white' : 'bg-green-600 text-white') : (i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600')}`}>{d.annualPlanRevenue ? formatCurrency(d.annualPlanRevenue) : '-'}</td>
                 ))}
               </tr>
+              )}
+              {state.capitalInjections.length > 0 && (
               <tr onClick={() => handleMetricClick('capitalInjection')} className={`group ${selectedChartMetric === 'capitalInjection' ? 'bg-green-600' : 'hover:bg-green-50'}`}>
                 <td className={`py-1 pl-6 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'capitalInjection' ? 'bg-green-600 text-white' : 'bg-white group-hover:bg-green-50 hover:text-blue-600'}`}>Capital Injection</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 cursor-default ${selectedChartMetric === 'capitalInjection' ? (i === selectedMonthIndex ? 'bg-green-700 text-white' : 'bg-green-600 text-white') : (i === selectedMonthIndex ? 'bg-green-600 text-white' : 'text-green-600')}`}>{d.capitalInjection ? formatCurrency(d.capitalInjection) : '-'}</td>
                 ))}
               </tr>
+              )}
               <tr onClick={() => handleMetricClick('totalInflows')} className={`group font-semibold ${selectedChartMetric === 'totalInflows' ? 'bg-green-700' : 'bg-green-100 hover:bg-green-200'}`}>
                 <td className={`py-1 pl-3 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'totalInflows' ? 'bg-green-700 text-white' : 'bg-green-100 group-hover:bg-green-200 hover:text-blue-600'}`}>Total Inflows</td>
                 {calculations.map((d, i) => (
@@ -2127,54 +2133,70 @@ export default function CashflowModel() {
                 <td className="py-2 pl-3 pr-2 font-semibold text-red-700 sticky left-0 z-10 relative bg-red-50 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">OUTFLOWS</td>
                 {calculations.map((_, i) => <td key={i} className={i === selectedMonthIndex ? 'bg-red-600' : ''}></td>)}
               </tr>
+              {state.employees.length > 0 && (
               <tr onClick={() => handleMetricClick('payroll')} className={`group ${selectedChartMetric === 'payroll' ? 'bg-red-600' : 'hover:bg-red-50'}`}>
                 <td className={`py-1 pl-6 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'payroll' ? 'bg-red-600 text-white' : 'bg-white group-hover:bg-red-50 hover:text-blue-600'}`}>Payroll (Fully Loaded)</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 cursor-default ${selectedChartMetric === 'payroll' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{formatCurrency(d.payroll)}</td>
                 ))}
               </tr>
+              )}
+              {state.recurringExpenses.length > 0 && (
               <tr onClick={() => handleMetricClick('recurringExpenses')} className={`group ${selectedChartMetric === 'recurringExpenses' ? 'bg-red-600' : 'hover:bg-red-50'}`}>
                 <td className={`py-1 pl-6 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'recurringExpenses' ? 'bg-red-600 text-white' : 'bg-white group-hover:bg-red-50 hover:text-blue-600'}`}>Recurring Expenses</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 cursor-default ${selectedChartMetric === 'recurringExpenses' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{formatCurrency(d.recurringExpenses)}</td>
                 ))}
               </tr>
+              )}
+              {state.oneTimeExpenses.length > 0 && (
               <tr onClick={() => handleMetricClick('oneTimeExpenses')} className={`group ${selectedChartMetric === 'oneTimeExpenses' ? 'bg-red-600' : 'hover:bg-red-50'}`}>
                 <td className={`py-1 pl-6 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'oneTimeExpenses' ? 'bg-red-600 text-white' : 'bg-white group-hover:bg-red-50 hover:text-blue-600'}`}>One-Time Expenses</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 cursor-default ${selectedChartMetric === 'oneTimeExpenses' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{d.oneTimeExpenses ? formatCurrency(d.oneTimeExpenses) : '-'}</td>
                 ))}
               </tr>
+              )}
+              {state.variableExpenses.length > 0 && (
               <tr onClick={() => handleMetricClick('variableExpenses')} className={`group ${selectedChartMetric === 'variableExpenses' ? 'bg-red-600' : 'hover:bg-red-50'}`}>
                 <td className={`py-1 pl-6 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'variableExpenses' ? 'bg-red-600 text-white' : 'bg-white group-hover:bg-red-50 hover:text-blue-600'}`}>Variable Expenses</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 cursor-default ${selectedChartMetric === 'variableExpenses' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{formatCurrency(d.variableExpenses)}</td>
                 ))}
               </tr>
+              )}
+              {state.refunds.length > 0 && (
               <tr onClick={() => handleMetricClick('refunds')} className={`group ${selectedChartMetric === 'refunds' ? 'bg-red-600' : 'hover:bg-red-50'}`}>
                 <td className={`py-1 pl-6 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'refunds' ? 'bg-red-600 text-white' : 'bg-white group-hover:bg-red-50 hover:text-blue-600'}`}>Refunds</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 cursor-default ${selectedChartMetric === 'refunds' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{formatCurrency(d.refunds)}</td>
                 ))}
               </tr>
+              )}
+              {state.estimatedTaxes.length > 0 && (
               <tr onClick={() => handleMetricClick('estimatedTaxes')} className={`group ${selectedChartMetric === 'estimatedTaxes' ? 'bg-red-600' : 'hover:bg-red-50'}`}>
                 <td className={`py-1 pl-6 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'estimatedTaxes' ? 'bg-red-600 text-white' : 'bg-white group-hover:bg-red-50 hover:text-blue-600'}`}>Estimated Taxes</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 cursor-default ${selectedChartMetric === 'estimatedTaxes' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{d.estimatedTaxes ? formatCurrency(d.estimatedTaxes) : '-'}</td>
                 ))}
               </tr>
+              )}
+              {state.ownersDraw.length > 0 && (
               <tr onClick={() => handleMetricClick('ownersDraw')} className={`group ${selectedChartMetric === 'ownersDraw' ? 'bg-red-600' : 'hover:bg-red-50'}`}>
                 <td className={`py-1 pl-6 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'ownersDraw' ? 'bg-red-600 text-white' : 'bg-white group-hover:bg-red-50 hover:text-blue-600'}`}>Owner's Draw</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 cursor-default ${selectedChartMetric === 'ownersDraw' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{formatCurrency(d.ownersDraw)}</td>
                 ))}
               </tr>
+              )}
+              {state.owners401k.length > 0 && (
               <tr onClick={() => handleMetricClick('owners401k')} className={`group ${selectedChartMetric === 'owners401k' ? 'bg-red-600' : 'hover:bg-red-50'}`}>
                 <td className={`py-1 pl-6 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'owners401k' ? 'bg-red-600 text-white' : 'bg-white group-hover:bg-red-50 hover:text-blue-600'}`}>Owner's 401k</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 cursor-default ${selectedChartMetric === 'owners401k' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{d.owners401k ? formatCurrency(d.owners401k) : '-'}</td>
                 ))}
               </tr>
+              )}
               <tr onClick={() => handleMetricClick('totalOutflows')} className={`group font-semibold ${selectedChartMetric === 'totalOutflows' ? 'bg-red-700' : 'bg-red-100 hover:bg-red-200'}`}>
                 <td className={`py-1 pl-3 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'totalOutflows' ? 'bg-red-700 text-white' : 'bg-red-100 group-hover:bg-red-200 hover:text-blue-600'}`}>Total Outflows</td>
                 {calculations.map((d, i) => (
