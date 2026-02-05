@@ -11,10 +11,6 @@ interface Props {
 
 const { scale = 0.8, top = '160px', left, right, rotate = 0, opacity = 1, flip = false } = Astro.props;
 
-// Randomize per-instance so each cloud drifts differently
-const duration = 20 + Math.random() * 15; // 20–35s
-const delay = -(Math.random() * 20); // stagger start
-
 const styles = [
   `transform: scale(${flip ? -scale : scale}, ${scale}) rotate(${rotate}deg)`,
   `top: ${top}`,
@@ -22,29 +18,46 @@ const styles = [
   right !== undefined && `right: ${right}`,
   `opacity: ${opacity}`,
 ].filter(Boolean).join('; ');
+
+const rand = (min: number, max: number) => Math.round((min + Math.random() * (max - min)) * 10) / 10;
+
+// Each circle gets its own random drift waypoints, duration, and delay
+const circles = [
+  { t: 40, l: 230, bg: 'rgba(255,255,255,0.5)' },
+  { t: 40, l: 0,   bg: 'rgba(255,255,255,0.5)' },
+  { t: 0,  l: 60,  bg: 'rgba(255,255,255,0.7)' },
+  { t: 80, l: 60,  bg: 'rgba(255,255,255,0.7)' },
+  { t: 0,  l: 150, bg: 'rgba(255,255,255,0.6)' },
+  { t: 80, l: 150, bg: 'rgba(255,255,255,0.7)' },
+].map(c => ({
+  ...c,
+  duration: rand(12, 22),
+  delay: -rand(0, 15),
+  dx1: rand(-10, 10), dy1: rand(-8, 8),
+  dx2: rand(-10, 10), dy2: rand(-8, 8),
+  dx3: rand(-10, 10), dy3: rand(-8, 8),
+}));
 ---
 
 <div class="absolute" style={styles}>
-  <div class="cloud-drift" style={`animation-duration: ${duration}s; animation-delay: ${delay}s`}>
-    <div class="absolute top-[40px] left-[230px] w-[120px] h-[120px] bg-white/50 rounded-full border border-[rgba(8,95,233,0.15)]" />
-    <div class="absolute top-[40px] left-[0] w-[120px] h-[120px] bg-white/50 rounded-full border border-[rgba(8,95,233,0.15)]" />
-    <div class="absolute top-[0px] left-[60px] w-[120px] h-[120px] bg-white/70 rounded-full border border-[rgba(8,95,233,0.15)]" />
-    <div class="absolute top-[80px] left-[60px] w-[120px] h-[120px] bg-white/70 rounded-full border border-[rgba(8,95,233,0.15)]" />
-    <div class="absolute top-[0px] left-[150px] w-[120px] h-[120px] bg-white/60 rounded-full border border-[rgba(8,95,233,0.15)]" />
-    <div class="absolute top-[80px] left-[150px] w-[120px] h-[120px] bg-white/70 rounded-full border border-[rgba(8,95,233,0.15)]" />
-  </div>
+  {circles.map(c => (
+    <div
+      class="circle-drift absolute w-[120px] h-[120px] rounded-full border border-[rgba(8,95,233,0.15)]"
+      style={`top: ${c.t}px; left: ${c.l}px; background: ${c.bg}; --dx1: ${c.dx1}px; --dy1: ${c.dy1}px; --dx2: ${c.dx2}px; --dy2: ${c.dy2}px; --dx3: ${c.dx3}px; --dy3: ${c.dy3}px; animation-duration: ${c.duration}s; animation-delay: ${c.delay}s;`}
+    />
+  ))}
 </div>
 
 <style>
-  @keyframes cloud-drift {
+  @keyframes circle-drift {
     0%   { transform: translate(0, 0); }
-    25%  { transform: translate(12px, -6px); }
-    50%  { transform: translate(-8px, 4px); }
-    75%  { transform: translate(6px, 8px); }
+    25%  { transform: translate(var(--dx1), var(--dy1)); }
+    50%  { transform: translate(var(--dx2), var(--dy2)); }
+    75%  { transform: translate(var(--dx3), var(--dy3)); }
     100% { transform: translate(0, 0); }
   }
 
-  .cloud-drift {
-    animation: cloud-drift linear infinite;
+  .circle-drift {
+    animation: circle-drift ease-in-out infinite;
   }
 </style>
