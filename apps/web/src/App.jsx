@@ -1182,7 +1182,7 @@ export default function CashflowModel() {
                 className="flex items-center gap-1 px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
               >
                 <Save size={12} />
-                Save As New
+                Save Scenario
               </button>
 
               {scenarios.length > 0 && (
