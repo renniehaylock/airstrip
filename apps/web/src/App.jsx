@@ -140,6 +140,7 @@ const EmployeeRow = ({ item, onUpdate, onToggleHidden, onRemove, monthLabels, fu
   };
 
   const hasEndDate = item.endMonth !== null && item.endMonth !== undefined;
+  const [showSettings, setShowSettings] = React.useState(false);
 
   return (
     <div className={`space-y-2 py-2.5 border-b border-gray-200 ${item.hidden ? 'opacity-50' : ''}`}>
@@ -164,16 +165,15 @@ const EmployeeRow = ({ item, onUpdate, onToggleHidden, onRemove, monthLabels, fu
           disabled={item.hidden}
         />
         <span className="text-gray-400 text-xs">/mo</span>
-        <span className="relative group/tooltip min-w-0">
-          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded cursor-help block truncate">
-            = {formatCurrency(item.salary * fullyLoadedMultiplier)} loaded
-          </span>
-          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg w-[180px] text-center opacity-0 group-hover/tooltip:opacity-100 pointer-events-none z-50">
-            Fully loaded = base salary + {Math.round((fullyLoadedMultiplier - 1) * 100)}% for benefits, taxes, etc.
-            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></span>
-          </span>
-        </span>
+        <span className="text-gray-400 text-xs">({formatCurrency(item.salary * 12)}/yr)</span>
         <span className="flex-1" />
+        <button
+          onClick={() => setShowSettings(!showSettings)}
+          className={`${showSettings ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600'}`}
+          title="Settings"
+        >
+          <Settings size={14} />
+        </button>
         <button
           onClick={onToggleHidden}
           className={`${item.hidden ? 'text-amber-500 hover:text-amber-700' : 'text-gray-400 hover:text-amber-500'}`}
@@ -185,59 +185,73 @@ const EmployeeRow = ({ item, onUpdate, onToggleHidden, onRemove, monthLabels, fu
           <Trash2 size={14} />
         </button>
       </div>
-      <div className="flex items-center gap-2 text-xs">
-        <span className="text-gray-500">Start:</span>
-        <select
-          value={localValues.startMonth}
-          onChange={(e) => handleSelectChange('startMonth', e.target.value, v => parseInt(v))}
-          className="px-1 py-0.5 border rounded text-xs"
-          disabled={item.hidden}
-        >
-          {monthLabels.map((label, i) => (
-            <option key={i} value={i}>{label}</option>
-          ))}
-        </select>
-        <span className="text-gray-500 ml-2">End:</span>
-        <select
-          value={hasEndDate ? localValues.endMonth : ''}
-          onChange={(e) => {
-            const val = e.target.value;
-            if (val === '') {
-              handleSelectChange('endMonth', null, () => null);
-              handleSelectChange('severanceMonths', 0, () => 0);
-            } else {
-              handleSelectChange('endMonth', val, v => parseInt(v));
-            }
-          }}
-          className="px-1 py-0.5 border rounded text-xs"
-          disabled={item.hidden}
-        >
-          <option value="">Indefinite</option>
-          {monthLabels.map((label, i) => (
-            <option key={i} value={i}>{label}</option>
-          ))}
-        </select>
-        {hasEndDate && (
-          <>
-            <span className="text-gray-500 ml-2">Severance:</span>
-            <select
-              value={localValues.severanceMonths}
-              onChange={(e) => handleSelectChange('severanceMonths', e.target.value, v => parseInt(v))}
-              className="px-1 py-0.5 border rounded text-xs"
-              disabled={item.hidden}
-            >
-              {[0, 1, 2, 3, 4, 5, 6, 9, 12].map(m => (
-                <option key={m} value={m}>{m} mo</option>
-              ))}
-            </select>
-          </>
-        )}
-      </div>
-      {hasEndDate && (
-        <div className="text-xs text-amber-600">
-          Ends {monthLabels[item.endMonth]}{item.severanceMonths > 0 ? ` + ${item.severanceMonths} mo severance` : ''}
+      {showSettings && (
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-gray-500">Start:</span>
+          <select
+            value={localValues.startMonth}
+            onChange={(e) => handleSelectChange('startMonth', e.target.value, v => parseInt(v))}
+            className="px-1 py-0.5 border rounded text-xs"
+            disabled={item.hidden}
+          >
+            {monthLabels.map((label, i) => (
+              <option key={i} value={i}>{label}</option>
+            ))}
+          </select>
+          <span className="text-gray-500 ml-2">End:</span>
+          <select
+            value={hasEndDate ? localValues.endMonth : ''}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '') {
+                handleSelectChange('endMonth', null, () => null);
+                handleSelectChange('severanceMonths', 0, () => 0);
+              } else {
+                handleSelectChange('endMonth', val, v => parseInt(v));
+              }
+            }}
+            className="px-1 py-0.5 border rounded text-xs"
+            disabled={item.hidden}
+          >
+            <option value="">Indefinite</option>
+            {monthLabels.map((label, i) => (
+              <option key={i} value={i}>{label}</option>
+            ))}
+          </select>
+          {hasEndDate && (
+            <>
+              <span className="text-gray-500 ml-2">Severance:</span>
+              <select
+                value={localValues.severanceMonths}
+                onChange={(e) => handleSelectChange('severanceMonths', e.target.value, v => parseInt(v))}
+                className="px-1 py-0.5 border rounded text-xs"
+                disabled={item.hidden}
+              >
+                {[0, 1, 2, 3, 4, 5, 6, 9, 12].map(m => (
+                  <option key={m} value={m}>{m} mo</option>
+                ))}
+              </select>
+            </>
+          )}
         </div>
       )}
+      <div className="flex items-center text-xs">
+        {hasEndDate && (
+          <span className="text-amber-600">
+            Ends {monthLabels[item.endMonth]}{item.severanceMonths > 0 ? ` + ${item.severanceMonths} mo severance` : ''}
+          </span>
+        )}
+        <span className="flex-1" />
+        <span className="relative group/tooltip">
+          <span className="text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded cursor-help">
+            {formatCurrency(item.salary * fullyLoadedMultiplier)} loaded
+          </span>
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg w-[180px] text-center opacity-0 group-hover/tooltip:opacity-100 pointer-events-none z-50">
+            Fully loaded = base salary + {Math.round((fullyLoadedMultiplier - 1) * 100)}% for benefits, taxes, etc.
+            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></span>
+          </span>
+        </span>
+      </div>
     </div>
   );
 };
