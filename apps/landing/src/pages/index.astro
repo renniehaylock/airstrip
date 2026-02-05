@@ -57,12 +57,14 @@ const airstripFeatures = [
 ];
 ---
 
-<Layout title="Airstrip — SaaS Cash Flow Forecasting">
+<Layout title="Airstrip - SaaS Cash Flow Forecasting and Analysis for Startups">
   <!-- Navigation -->
-  <nav class="fixed top-0 left-0 right-0 py-4 z-50">
+  <nav id="nav" class="fixed top-0 left-0 right-0 py-4 z-50 transition-[background-color,backdrop-filter,padding,border-color] duration-300 border-b border-transparent">
     <div class="max-w-5xl mx-auto px-6 flex justify-between items-center">
-      <Logo imgSize={25} />
-      <a href={APP_URL} class="text-sm text-gray-600 hover:text-coral-500 transition-colors">
+      <div id="nav-logo" class="origin-left transition-transform duration-300">
+        <Logo imgSize={25} />
+      </div>
+      <a id="nav-cta" href={APP_URL} class="text-sm font-medium text-gray-800 px-2.5 py-1 rounded-[8px] transition-colors border border-transparent">
         Open App
       </a>
     </div>
@@ -70,8 +72,6 @@ const airstripFeatures = [
 
   <!-- Hero -->
   <section class="relative pt-28 pb-16 overflow-hidden">
-    <!-- Sky gradient background -->
-    <div class="absolute inset-0 bg-gradient-to-b from-[#DFEBFF] to-white" />
 
     <div class="max-w-[1000px] mx-auto px-6 relative z-10 text-center">
 
@@ -100,12 +100,12 @@ const airstripFeatures = [
       </Button>
 
       <!-- App Screenshot -->
-      <div class="p-5 mt-28 rounded-[18px] overflow-hidden bg-gradient-to-b from-[#C0D8FF] to-[#FFE5E1] border border-blue-500/20">
-        <div class="rounded-xl overflow-hidden" style="box-shadow: 0 0 0 1px #11182715, 0 2px 20px #11182730">
+      <div class="mt-28 rounded-[18px] overflow-hidden bg-gradient-to-b from-[#C0D8FF] to-[#FFE5E1] border border-blue-500/20 p-2 md:p-5">
+        <div class="rounded-xl overflow-auto" style="box-shadow: 0 0 0 1px #11182715, 0 2px 20px #11182730">
           <img
             src="/airstrip-dashboard.png"
             alt="Airstrip app interface showing cash flow forecast"
-            class="w-[1064px]"
+            class="w-[1064px] min-w-[600px]"
           />
         </div>
       <div/ >
@@ -131,10 +131,10 @@ const airstripFeatures = [
         When churn creeps up or acquisition slows down, your MRR doesn't drop immediately; it bleeds out over months. Most founders don't see the iceberg until they've hit it. <strong class="text-gray-800">To model this properly, you've had two options:</strong>
       </p>
 
-      <div class="grid md:grid-cols-2 gap-6 mt-14 mb-12">
+      <div class="flex gap-6 mt-20 mb-40 justify-center">
         <!-- Spreadsheet Card -->
-        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-          <h3 class="font-semibold text-gray-800 mb-4">The Spreadsheet from Hell</h3>
+        <div class="w-[350px] max-w-full bg-white border border-gray-300 rounded-xl py-6 pb-8 px-7 shadow-sm max-w-md">
+          <h3 class="font-semibold text-gray-800 mb-4 text-[18px]">The Spreadsheet from Hell</h3>
           <ul class="space-y-3 text-gray-600 text-sm">
             {[
               'Pull numbers from Baremetrics, QuickBooks, Gusto',
@@ -144,7 +144,7 @@ const airstripFeatures = [
               'Cry softly when someone asks for a scenario'
             ].map((item) => (
               <li class="flex gap-3">
-                <span class="text-coral-500 font-bold shrink-0">×</span>
+                <span class="text-red-500 font-reg shrink-0 text-[30px]">×</span>
                 {item}
               </li>
             ))}
@@ -152,8 +152,8 @@ const airstripFeatures = [
         </div>
 
         <!-- Enterprise Card -->
-        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-          <h3 class="font-semibold text-gray-800 mb-4">Enterprise FP&A Tools</h3>
+        <div class="w-[350px] max-w-full bg-white border border-gray-300 rounded-xl py-6 pb-8 px-7 shadow-sm max-w-md">
+          <h3 class="font-semibold text-gray-800 mb-4 text-[18px]">Enterprise FP&A Tools</h3>
           <ul class="space-y-3 text-gray-600 text-sm">
             {[
               '$500–$2,000/month minimum',
@@ -163,7 +163,7 @@ const airstripFeatures = [
               'Weeks long onboarding process'
             ].map((item) => (
               <li class="flex gap-3">
-                <span class="text-coral-500 font-bold shrink-0">×</span>
+                <span class="text-red-500 font-reg shrink-0 text-[30px]">×</span>
                 {item}
               </li>
             ))}
@@ -172,39 +172,49 @@ const airstripFeatures = [
       </div>
 
       <!-- Airstrip Card -->
-      <div class="bg-sky-50 border-2 border-sky-200 rounded-2xl p-8 md:p-10 text-center max-w-2xl mx-auto">
-        <div class="flex items-center justify-center gap-2 mb-3">
-          <div class="w-8 h-8 bg-coral-500 rounded-lg flex items-center justify-center">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 stroke-white">
-              <path d="M2 20L22 4M2 20l4-8m-4 8h8" />
-            </svg>
+      <div class="bg-gradient-to-br from-[#FF907E] to-[#8EBAFF] max-w-full w-[550px] mx-auto p-[10px] md:p-[23px] rounded-[30px] md:rounded-[45px]">
+        <div class="bg-white shadow-[0_2px_20px_#11182730] rounded-[22px]">
+          <div class="px-8 py-6 border-b border-gray-300">
+            <div class="flex items-center gap-2">
+              <span class="text-[30px] text-gray-800">With</span>
+              <Logo iconOnly imgSize={25} />
+              <span class="text-[30px] text-gray-80 font-semibold">Airstrip</span>
+            </div>
+            <p class="text-gray-900 text-[20px]">Enter your numbers. See your runway.</p>  
           </div>
-          <span class="text-xl font-semibold text-gray-800">With Airstrip</span>
-        </div>
-        <p class="text-gray-600 mb-6">Enter your numbers. See your runway. That's it.</p>
+          <div class="px-8 pt-10 pb-16">
+            <ul class="space-y-3 text-left max-w-sm">
+              {airstripFeatures.map((item) => (
+                <li class="flex items-center gap-3 text-gray-700 text-[20px]">
+                  <svg class="w-6 h-6 text-green-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div class="px-8 py-6 border-t flex justify-center border-gray-300">
+            <Button href={APP_URL}>
+              Open Airstrip
+              <Icon name="arrow-right" class="w-4 h-4" />
+            </Button>      
+          </div>
 
-        <ul class="space-y-3 text-left max-w-sm mx-auto">
-          {airstripFeatures.map((item) => (
-            <li class="flex items-start gap-3 text-gray-700 text-sm">
-              <svg class="w-5 h-5 text-coral-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              {item}
-            </li>
-          ))}
-        </ul>
+        </div>
+  
       </div>
     </div>
   </section>
 
   <!-- Features Section -->
-  <section class="py-20 md:py-28 bg-slate-50">
+  <section class="py-20 md:py-28">
     <div class="max-w-5xl mx-auto px-6">
-      <div class="text-sm text-coral-500 font-medium mb-3">Features</div>
-      <h2 class="font-serif text-3xl md:text-4xl leading-tight mb-3">
+      <div class="text-[22px] text-blue-500 font-medium mb-3">Features</div>
+      <h2 class="font-serif text-[37px] md:text-4xl leading-tight mb-3 font-semibold">
         Your metrics in. Your runway out.
       </h2>
-      <p class="text-gray-600 max-w-2xl mb-12">
+      <p class="text-gray-600 max-w-2xl mb-12 text-[20px]">
         Everything you'd need Baremetrics + QuickBooks + Gusto +<br class="hidden sm:block" />
         a spreadsheet to forecast cashflow, in one chart.
       </p>
@@ -224,8 +234,8 @@ const airstripFeatures = [
     <div class="max-w-5xl mx-auto px-6">
       <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
         <div>
-          <div class="text-6xl text-coral-400 font-serif leading-none mb-4">"</div>
-          <blockquote class="text-xl md:text-2xl text-gray-700 leading-relaxed italic -mt-8">
+          <div class="text-7xl text-coral-500 font-serif leading-none mb-4">"</div>
+          <blockquote class="text-3xl text-gray-900 leading-[1.5] italic -mt-8">
             I built Airstrip to forecast cash flow at Huntr, my B2C SaaS company. After 8 years of maintaining a spreadsheet that pulled from Baremetrics, QuickBooks, and Gusto; I finally made the leap and built the tool I actually needed.
           </blockquote>
           <p class="mt-6 text-gray-600">
@@ -235,9 +245,9 @@ const airstripFeatures = [
 
         <div class="grid grid-cols-2 gap-4">
           {stats.map(({ value, label }) => (
-            <div class="text-center p-6 bg-white rounded-xl border border-slate-200">
+            <div class="text-center p-6 h-[130px] flex flex-col justify-center bg-gray-50 rounded-xl border border-gray-300">
               <div class="text-3xl md:text-4xl font-semibold text-coral-500">{value}</div>
-              <div class="text-sm text-gray-500 mt-1">{label}</div>
+              <div class="text-sm text-gray-800 mt-1">{label}</div>
             </div>
           ))}
         </div>
@@ -251,12 +261,12 @@ const airstripFeatures = [
     <div class="absolute inset-0" />
 
     <div class="max-w-3xl mx-auto px-6 relative z-10 text-center">
-      <div class="text-sm text-coral-500 font-medium mb-3">Get Started</div>
-      <h2 class="font-serif text-3xl md:text-4xl leading-tight mb-4">
+      <div class="text-[22px] text-coral-500 font-medium mb-3">Get Started</div>
+      <h2 class="font-semibold text-[40px] leading-tight mb-6">
         Stop duct-taping Baremetrics to<br class="hidden sm:block" />
         QuickBooks to a spreadsheet.
       </h2>
-      <p class="text-gray-600 max-w-xl mx-auto mb-8">
+      <p class="text-gray-600 max-w-xl mx-auto mb-12 text-[23px]">
         See where your runway is actually headed. No signup, no credit card, no "let's schedule a demo."
       </p>
 
@@ -268,11 +278,39 @@ const airstripFeatures = [
   </section>
 
   <!-- Footer -->
-  <footer class="py-8 text-center text-gray-500 text-sm">
+  <footer class="pt-36 pb-10 text-center text-gray-500 text-md">
     <div class="max-w-5xl mx-auto px-6">
-      <p>
-        Built by <a href="https://huntr.co" target="_blank" class="text-coral-500 hover:underline">Rennie Haylock</a> from <a href="https://huntr.co" target="_blank" class="text-coral-500 hover:underline">Huntr</a>
+      <p class="text-gray-800 mb-1 font-medium">
+        Built by <a href="https://renniehaylock.com" target="_blank" class="text-blue-500 font-semibold hover:underline">Rennie Haylock</a> from <a href="https://huntr.co" target="_blank" class="text-purple-500 font-semibold hover:underline">Huntr</a>
       </p>
+      <p class="text-sm">
+        I built this for myself; I'm keeping it free because every founder deserves a clear runway.
     </div>
   </footer>
+  <!-- Sky gradient background -->
+  <div class="absolute inset-0 bg-gradient-to-b from-[#DFEBFF] to-white h-[300vh] z-[-99] pointer-events-none" />
+
+  <script>
+    const nav = document.getElementById('nav')!;
+    const logo = document.getElementById('nav-logo')!;
+    const cta = document.getElementById('nav-cta')!;
+    const scrolled = () => window.scrollY > 20;
+    const update = () => {
+      const s = scrolled();
+      nav.classList.toggle('bg-white/20', s);
+      nav.classList.toggle('backdrop-blur-md', s);
+      nav.classList.toggle('py-1', s);
+      nav.classList.toggle('py-4', !s);
+      nav.classList.toggle('border-gray-200', s);
+      nav.classList.toggle('border-transparent', !s);
+      logo.style.transform = s ? 'scale(0.85)' : 'scale(1)';
+      cta.style.backgroundColor = s ? '#FF6045' : 'transparent';
+      cta.style.color = s ? '#fff' : '';
+      cta.style.border = s ? '1px solid #E54D34' : 'none';
+      cta.onmouseenter = s ? () => cta.style.backgroundColor = '#E54D34' : null;
+      cta.onmouseleave = s ? () => cta.style.backgroundColor = '#FF6045' : null;
+    };
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  </script>
 </Layout>
