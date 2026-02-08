@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from 'recharts';
-import { Plus, Trash2, ChevronDown, ChevronRight, TrendingUp, Users, CreditCard, Save, FolderOpen, Eye, EyeOff, X, Link, Check, PanelLeftClose, PanelLeftOpen, ChevronUp, Info, Pencil, Settings, Sliders } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, TrendingUp, Users, CreditCard, Save, FolderOpen, Eye, EyeOff, X, Link, Check, PanelLeftClose, PanelLeftOpen, ChevronUp, Info, Pencil, Settings, Sliders, Coffee } from 'lucide-react';
 
 const STORAGE_KEY = 'cashflow-scenarios';
 
@@ -1135,6 +1135,7 @@ export default function CashflowModel() {
               <img src="/airstrip-favicon.png" alt="Airstrip" className="w-4 h-4" />
               <h1 className="text-lg font-bold text-gray-800">Airstrip</h1>
             </a>
+            <div className="flex items-center gap-1">
             {/* Close button - different for mobile vs desktop */}
             {mobileMenuOpen ? (
               <button
@@ -1151,6 +1152,7 @@ export default function CashflowModel() {
                 <PanelLeftClose size={18} className="text-gray-600" />
               </button>
             )}
+            </div>
           </div>
 
           {/* Scrollable Sidebar Content */}
@@ -1869,13 +1871,25 @@ export default function CashflowModel() {
                 </>
               )}
             </div>
-            {/* Mobile hamburger menu - right side */}
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden p-1 rounded hover:bg-gray-100 transition-colors"
-            >
-              <Sliders size={17} className="text-gray-600" />
-            </button>
+            <div className="flex items-center gap-2 ml-auto">
+              <a
+                href="https://buymeacoffee.com/renniehaylock"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-2 py-1 rounded bg-blue-500 hover:bg-blue-600 transition-colors"
+                title="Buy me a coffee"
+              >
+                <Coffee size={16} className="text-white flex-shrink-0" />
+                <span className="text-xs font-medium text-white whitespace-nowrap">Buy me a coffee</span>
+              </a>
+              {/* Mobile hamburger menu */}
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                className="md:hidden p-1 rounded hover:bg-gray-100 transition-colors"
+              >
+                <Sliders size={17} className="text-gray-600" />
+              </button>
+            </div>
           </div>
         </div>
 

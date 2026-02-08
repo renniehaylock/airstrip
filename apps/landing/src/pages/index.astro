@@ -64,9 +64,15 @@ const airstripFeatures = [
       <div id="nav-logo" class="origin-left transition-transform duration-300">
         <Logo imgSize={25} />
       </div>
-      <a id="nav-cta" href={APP_URL} class="text-sm font-medium text-gray-800 px-2.5 py-1 rounded-[8px] transition-colors border border-transparent">
-        Open App
-      </a>
+      <div class="flex items-center gap-3">
+        <a href="https://buymeacoffee.com/renniehaylock" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-blue-500 hover:text-white hover:bg-blue-500 px-2.5 py-1 rounded-[8px] transition-colors flex items-center gap-1" title="Buy me a coffee">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a2 2 0 1 1 0 4h-1"/><path d="M6 2v2"/></svg>
+          Buy me a coffee
+        </a>
+        <a id="nav-cta" href={APP_URL} class="text-sm font-medium text-gray-800 px-2.5 py-1 rounded-[8px] transition-colors border border-transparent">
+          Open App
+        </a>
+      </div>
     </div>
   </nav>
 
