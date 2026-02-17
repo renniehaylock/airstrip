@@ -374,6 +374,10 @@ const encodeState = (state) => {
   params.set('o4k', JSON.stringify(state.owners401k.map(e => ({ c: e.category, m: e.month, a: e.amount, h: e.hidden ? 1 : 0 }))));
   params.set('etx', JSON.stringify(state.estimatedTaxes.map(e => ({ d: e.description, m: e.month, a: e.amount, h: e.hidden ? 1 : 0 }))));
 
+  // Tax estimation mode
+  if (state.taxMode && state.taxMode !== 'manual') params.set('txm', state.taxMode);
+  if (state.effectiveTaxRate != null && state.effectiveTaxRate !== 25) params.set('txr', state.effectiveTaxRate);
+
   // Chart settings
   if (state.chartYMin !== null) params.set('cymin', state.chartYMin);
   if (state.chartYMax !== null) params.set('cymax', state.chartYMax);
@@ -485,6 +489,10 @@ const decodeState = (search, defaultState) => {
       state.estimatedTaxes = etx.map((e, i) => ({ id: i + 1, description: e.d, month: e.m, amount: e.a, hidden: !!e.h }));
     }
 
+    // Tax estimation mode
+    if (params.has('txm')) state.taxMode = params.get('txm');
+    if (params.has('txr')) state.effectiveTaxRate = parseFloat(params.get('txr'));
+
     // Chart settings
     if (params.has('cymin')) state.chartYMin = parseFloat(params.get('cymin'));
     if (params.has('cymax')) state.chartYMax = parseFloat(params.get('cymax'));
@@ -522,6 +530,9 @@ export default function CashflowModel() {
     ownersDraw: [],
     owners401k: [],
     estimatedTaxes: [],
+    // Tax estimation mode
+    taxMode: 'manual',       // 'manual' | 'dynamic'
+    effectiveTaxRate: 25,    // percentage
     // Chart settings
     chartYMin: null,
     chartYMax: null,
@@ -609,6 +620,7 @@ export default function CashflowModel() {
     variableExpenses: { label: 'Variable Expenses', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
     refunds: { label: 'Refunds', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
     estimatedTaxes: { label: 'Estimated Taxes', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
+    monthlyTaxableProfit: { label: 'Taxable Profit', color: '#64748b', hoverColor: '#475569', type: 'info' },
     ownersDraw: { label: "Owner's Draw", color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
     owners401k: { label: "Owner's 401k", color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
     totalOutflows: { label: 'Total Outflows', color: '#ef4444', hoverColor: '#dc2626', type: 'outflow' },
@@ -969,6 +981,31 @@ export default function CashflowModel() {
     let currentAdditionalRevenue = state.additionalRevenue;
     let currentCustomers = state.arpu > 0 ? Math.round(state.startingMRR / state.arpu) : 0;
 
+    let quarterlyTaxableProfit = 0;
+
+    // Derive calendar month for each forecast month index
+    const getCalendarMonth = (forecastMonthIndex) => {
+      let sm;
+      if (state.forecastStartDate) {
+        const [, m] = state.forecastStartDate.split('-').map(Number);
+        sm = m - 1;
+      } else {
+        sm = new Date().getMonth();
+      }
+      return (sm + forecastMonthIndex) % 12;
+    };
+
+    // IRS quarterly payment months: Jan(0), Apr(3), Jun(5), Sep(8)
+    const TAX_PAYMENT_CALENDAR_MONTHS = [0, 3, 5, 8];
+    const taxPaymentMonths = new Set();
+    if (state.taxMode === 'dynamic') {
+      for (let m = 0; m < state.numberOfMonths; m++) {
+        if (TAX_PAYMENT_CALENDAR_MONTHS.includes(getCalendarMonth(m))) {
+          taxPaymentMonths.add(m);
+        }
+      }
+    }
+
     for (let month = 0; month < state.numberOfMonths; month++) {
       // MRR and Customer Calculations
       let newCustomers = 0;
@@ -1056,10 +1093,41 @@ export default function CashflowModel() {
         .filter(exp => !exp.hidden)
         .reduce((sum, exp) => sum + exp.amount, 0);
 
-      // Estimated taxes (manual payments by month) - exclude hidden
-      const totalEstimatedTaxes = state.estimatedTaxes
-        .filter(exp => exp.month === month && !exp.hidden)
-        .reduce((sum, exp) => sum + exp.amount, 0);
+      // Deductible business expenses (excludes owner's draw, 401k, and taxes)
+      const deductibleOutflows = totalPayroll + totalRecurring + totalOneTime
+        + totalVariable + totalRefunds;
+
+      // Tax calculation
+      let dynamicTaxPayment = 0;
+      let monthlyTaxableProfit = 0;
+      let accruedTaxLiability = 0;
+
+      if (state.taxMode === 'dynamic') {
+        const taxRate = (state.effectiveTaxRate || 0) / 100;
+        // Taxable revenue excludes capital injections
+        const taxableRevenue = currentMRR + currentAdditionalRevenue + annualPlanRev;
+        monthlyTaxableProfit = taxableRevenue - deductibleOutflows;
+
+        // Discharge prior quarter BEFORE accumulating this month
+        // (Apr pays Jan-Mar, Jun pays Apr-May, Sep pays Jun-Aug, Jan pays Sep-Dec)
+        if (taxPaymentMonths.has(month)) {
+          dynamicTaxPayment = Math.max(0, quarterlyTaxableProfit * taxRate);
+          quarterlyTaxableProfit = 0; // reset for new quarter
+        }
+
+        // Accumulate this month's profit toward the next payment
+        quarterlyTaxableProfit += monthlyTaxableProfit;
+        accruedTaxLiability = Math.max(0, quarterlyTaxableProfit * taxRate);
+      }
+
+      const manualEstimatedTaxes = state.taxMode === 'manual'
+        ? state.estimatedTaxes
+            .filter(exp => exp.month === month && !exp.hidden)
+            .reduce((sum, exp) => sum + exp.amount, 0)
+        : 0;
+
+      const totalEstimatedTaxes = state.taxMode === 'dynamic'
+        ? dynamicTaxPayment : manualEstimatedTaxes;
 
       // Owner's Draw (taken from profits) - exclude hidden
       const totalOwnersDraw = state.ownersDraw
@@ -1092,6 +1160,9 @@ export default function CashflowModel() {
         variableExpenses: Math.round(totalVariable),
         refunds: Math.round(totalRefunds),
         estimatedTaxes: Math.round(totalEstimatedTaxes),
+        monthlyTaxableProfit: Math.round(monthlyTaxableProfit),
+        accruedTaxLiability: Math.round(accruedTaxLiability),
+        isTaxPaymentMonth: taxPaymentMonths.has(month),
         ownersDraw: Math.round(totalOwnersDraw),
         owners401k: Math.round(totalOwners401k),
         totalOutflows: Math.round(totalOutflows),
@@ -1677,39 +1748,81 @@ export default function CashflowModel() {
                 <SidebarBox
                   title="Estimated Tax Payments"
                   section="estimatedTaxes"
-                  badge={hiddenCounts.estimatedTaxes}
-                  count={state.estimatedTaxes.length}
+                  badge={state.taxMode === 'manual' ? hiddenCounts.estimatedTaxes : 0}
+                  count={state.taxMode === 'manual' ? state.estimatedTaxes.length : 0}
                   expanded={expandedSections.estimatedTaxes}
                   onToggle={toggleSection}
                   dotColor="#be123c"
                 >
                   <div className="space-y-2">
-                    <p className="text-xs text-gray-500 mb-1">Based on prior year profits</p>
-                    {state.estimatedTaxes.map(exp => (
-                      <ExpenseRow
-                        key={exp.id}
-                        item={exp}
-                        onUpdate={(field, value) => updateArrayItem('estimatedTaxes', exp.id, field, value)}
-                        onToggleHidden={() => toggleHidden('estimatedTaxes', exp.id)}
-                        onRemove={() => removeArrayItem('estimatedTaxes', exp.id)}
-                        fields={[
-                          { key: 'description', type: 'text', className: 'flex-1' },
-                          {
-                            key: 'month',
-                            type: 'select',
-                            options: monthLabels.map((label, i) => ({ value: i, label })),
-                            parse: v => parseInt(v)
-                          },
-                          { key: 'amount', type: 'number', prefix: '$', className: 'w-20', parse: v => parseFloat(v) || 0 },
-                        ]}
-                      />
-                    ))}
-                    <button
-                      onClick={() => addArrayItem('estimatedTaxes', { description: 'Tax Payment', month: 0, amount: 0 })}
-                      className="flex items-center gap-1 text-blue-500 hover:text-blue-700 text-xs"
-                    >
-                      <Plus size={12} /> Add Tax Payment
-                    </button>
+                    {/* Manual / Auto toggle */}
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => updateState('taxMode', 'manual')}
+                        className={`px-2 py-0.5 text-xs rounded-l border ${state.taxMode === 'manual' ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
+                      >
+                        Manual
+                      </button>
+                      <button
+                        onClick={() => updateState('taxMode', 'dynamic')}
+                        className={`px-2 py-0.5 text-xs rounded-r border border-l-0 ${state.taxMode === 'dynamic' ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
+                      >
+                        Auto
+                      </button>
+                    </div>
+
+                    {state.taxMode === 'manual' ? (
+                      <>
+                        <p className="text-xs text-gray-400 mb-1">Add individual tax payments at specific months</p>
+                        {state.estimatedTaxes.map(exp => (
+                          <ExpenseRow
+                            key={exp.id}
+                            item={exp}
+                            onUpdate={(field, value) => updateArrayItem('estimatedTaxes', exp.id, field, value)}
+                            onToggleHidden={() => toggleHidden('estimatedTaxes', exp.id)}
+                            onRemove={() => removeArrayItem('estimatedTaxes', exp.id)}
+                            fields={[
+                              { key: 'description', type: 'text', className: 'flex-1' },
+                              {
+                                key: 'month',
+                                type: 'select',
+                                options: monthLabels.map((label, i) => ({ value: i, label })),
+                                parse: v => parseInt(v)
+                              },
+                              { key: 'amount', type: 'number', prefix: '$', className: 'w-20', parse: v => parseFloat(v) || 0 },
+                            ]}
+                          />
+                        ))}
+                        <button
+                          onClick={() => addArrayItem('estimatedTaxes', { description: 'Tax Payment', month: 0, amount: 0 })}
+                          className="flex items-center gap-1 text-blue-500 hover:text-blue-700 text-xs"
+                        >
+                          <Plus size={12} /> Add Tax Payment
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <InputField
+                          label="Effective Tax Rate"
+                          value={state.effectiveTaxRate}
+                          onChange={(v) => updateState('effectiveTaxRate', parseFloat(v) || 0)}
+                          suffix="%"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Estimates quarterly payments on the US IRS schedule (Apr, Jun, Sep, Jan) based on taxable profit — revenue minus business expenses, excluding draws and distributions</p>
+                        {/* Payment summary */}
+                        {calculations.some(d => d.isTaxPaymentMonth) && (
+                          <div className="mt-2 space-y-1">
+                            <p className="text-xs font-medium text-gray-600">Quarterly Payments</p>
+                            {calculations.filter(d => d.isTaxPaymentMonth).map(d => (
+                              <div key={d.monthIndex} className="flex justify-between text-xs">
+                                <span className="text-gray-500">{d.month}</span>
+                                <span className={`font-medium ${d.estimatedTaxes > 0 ? 'text-red-600' : 'text-gray-400'}`}>{formatCurrency(d.estimatedTaxes)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </SidebarBox>
               </div>
@@ -2242,11 +2355,19 @@ export default function CashflowModel() {
                 ))}
               </tr>
               )}
-              {state.estimatedTaxes.length > 0 && (
+              {(state.estimatedTaxes.length > 0 || state.taxMode === 'dynamic') && (
               <tr onClick={() => handleMetricClick('estimatedTaxes')} className={`group ${selectedChartMetric === 'estimatedTaxes' ? 'bg-red-600' : 'hover:bg-red-50'}`}>
                 <td className={`py-1 pl-6 pr-2 sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'estimatedTaxes' ? 'bg-red-600 text-white' : 'bg-white group-hover:bg-red-50 hover:text-blue-600'}`}>Estimated Taxes</td>
                 {calculations.map((d, i) => (
-                  <td key={i} className={`text-center py-1 px-1 cursor-default ${selectedChartMetric === 'estimatedTaxes' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{d.estimatedTaxes ? formatCurrency(d.estimatedTaxes) : '-'}</td>
+                  <td key={i} className={`text-center py-1 px-1 cursor-default ${selectedChartMetric === 'estimatedTaxes' ? (i === selectedMonthIndex ? 'bg-red-700 text-white' : 'bg-red-600 text-white') : (i === selectedMonthIndex ? 'bg-red-600 text-white' : 'text-red-600')}`}>{d.estimatedTaxes ? formatCurrency(d.estimatedTaxes) : (state.taxMode === 'dynamic' && d.isTaxPaymentMonth ? '$0' : '-')}</td>
+                ))}
+              </tr>
+              )}
+              {state.taxMode === 'dynamic' && (
+              <tr onClick={() => handleMetricClick('monthlyTaxableProfit')} className={`group ${selectedChartMetric === 'monthlyTaxableProfit' ? 'bg-slate-600' : 'hover:bg-slate-50'}`}>
+                <td className={`py-1 pl-6 pr-2 text-xs italic sticky left-0 z-10 relative after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 cursor-pointer ${selectedChartMetric === 'monthlyTaxableProfit' ? 'bg-slate-600 text-white' : 'bg-white group-hover:bg-slate-50 text-slate-500 hover:text-blue-600'}`}>Taxable Profit</td>
+                {calculations.map((d, i) => (
+                  <td key={i} className={`text-center py-1 px-1 text-xs cursor-default ${selectedChartMetric === 'monthlyTaxableProfit' ? (i === selectedMonthIndex ? 'bg-slate-700 text-white' : 'bg-slate-600 text-white') : (i === selectedMonthIndex ? 'bg-slate-600 text-white' : 'text-slate-500')}`}>{formatCurrency(d.monthlyTaxableProfit)}</td>
                 ))}
               </tr>
               )}
