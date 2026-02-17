@@ -1813,12 +1813,27 @@ export default function CashflowModel() {
                         {calculations.some(d => d.isTaxPaymentMonth) && (
                           <div className="mt-2 space-y-1">
                             <p className="text-xs font-medium text-gray-600">Quarterly Payments</p>
-                            {calculations.filter(d => d.isTaxPaymentMonth).map(d => (
-                              <div key={d.monthIndex} className="flex justify-between text-xs">
-                                <span className="text-gray-500">{d.month}</span>
-                                <span className={`font-medium ${d.estimatedTaxes > 0 ? 'text-red-600' : 'text-gray-400'}`}>{formatCurrency(d.estimatedTaxes)}</span>
-                              </div>
-                            ))}
+                            {(() => {
+                              const paymentMonths = calculations.filter(d => d.isTaxPaymentMonth);
+                              let prevEnd = -1;
+                              return paymentMonths.map(d => {
+                                const coverStart = prevEnd + 1;
+                                const coverEnd = d.monthIndex - 1;
+                                prevEnd = coverEnd;
+                                const rangeLabel = coverStart <= coverEnd
+                                  ? `${monthLabels[coverStart]}–${monthLabels[coverEnd]}`
+                                  : null;
+                                return (
+                                  <div key={d.monthIndex} className="flex justify-between text-xs items-baseline">
+                                    <div>
+                                      <span className="text-gray-500">{d.month}</span>
+                                      {rangeLabel && <span className="text-gray-400 ml-1">({rangeLabel})</span>}
+                                    </div>
+                                    <span className={`font-medium ${d.estimatedTaxes > 0 ? 'text-red-600' : 'text-gray-400'}`}>{formatCurrency(d.estimatedTaxes)}</span>
+                                  </div>
+                                );
+                              });
+                            })()}
                           </div>
                         )}
                       </>
