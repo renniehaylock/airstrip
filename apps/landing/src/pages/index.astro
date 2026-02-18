@@ -11,12 +11,12 @@ const features = [
   {
     icon: 'plus',
     title: 'SaaS Metrics Built In',
-    description: 'Start with the inputs you actually have: ARPU, churn rate, new customers per month. Airstrip models the lag between metric changes and MRR impact—the thing spreadsheets get wrong.'
+    description: 'Start with the inputs you actually have: ARPU, churn rate, new customers per month. Airstrip models the lag between metric changes and runway impact—the thing spreadsheets get wrong.'
   },
   {
     icon: 'users',
     title: 'Payroll Modeling',
-    description: "Add employees with salaries, start and end dates. Hide roles to see what cuts do to cash. Play scenarios without touching your real books."
+    description: "Add employees with salaries, start and end dates. Hide roles to see what cuts do to runway. Play scenarios without touching your real books."
   },
   {
     icon: 'credit-card',
@@ -41,7 +41,7 @@ const features = [
 ] as const;
 
 const stats = [
-  { value: '60', label: 'Month forecast range' },
+  { value: '60', label: 'Month runway range' },
   { value: '∞', label: 'Saved scenarios' },
   { value: '$0', label: 'Totally free' },
   { value: '0', label: 'Data we collect' }
@@ -57,7 +57,7 @@ const airstripFeatures = [
 ];
 ---
 
-<Layout title="Airstrip - SaaS Cash Flow Forecasting and Analysis for Startups">
+<Layout title="Airstrip – Startup Runway Calculator for SaaS Founders">
   <!-- Navigation -->
   <nav id="nav" class="fixed top-0 left-0 right-0 py-4 z-50 transition-[background-color,backdrop-filter,padding,border-color] duration-300 border-b border-transparent">
     <div class="max-w-5xl mx-auto px-6 flex justify-between items-center">
@@ -90,13 +90,13 @@ const airstripFeatures = [
       </div>
 
       <h1 class="font-serif leading-[1.2] font-semibold text-[47px] text-gray-900 leading-tight mb-5">
-        Cash flow forecasting that<br />
+        Startup runway calculator that<br />
         <em class="italic text-blue-500">actually</em> understands SaaS.
       </h1>
 
       <p class="text-gray-700 leading-[1.4] text-[24px] mb-12 max-w-xl mx-auto">
-        Your metrics, expenses, and payroll in one chart.<br class="hidden sm:block" />
-        Without the spreadsheet from hell or the<br class="hidden sm:block" />
+        Your SaaS metrics, expenses, and payroll—one chart,<br class="hidden sm:block" />
+        one runway number. No spreadsheet, no<br class="hidden sm:block" />
         $2k/month enterprise tool.
       </p>
 
@@ -131,7 +131,7 @@ const airstripFeatures = [
       <div class="text-[22px] text-coral-500 font-medium mb-3">The Problem</div>
       <h2 class="font-serif font-semibold text-[37px] md:text-4xl leading-tight">
         SaaS revenue isn't linear.<br class="hidden md:block" />
-        Your forecasting tool should know that.
+        Your runway calculator should know that.
       </h2>
       <p class="text-gray-600 max-w-3xl text-[20px] mt-8">
         When churn creeps up or acquisition slows down, MRR doesn't move in a straight line. The hit — or the bump, when things go well — is steepest in the first few months, then gradually flattens as the compounding plays out. Most founders don't see the shape of it until they've already hit the iceberg.
@@ -227,7 +227,7 @@ const airstripFeatures = [
       </h2>
       <p class="text-gray-600 max-w-2xl mb-12 text-[20px]">
         Everything you'd need Baremetrics + QuickBooks + Gusto +<br class="hidden sm:block" />
-        a spreadsheet to forecast cashflow, in one chart.
+        a spreadsheet to calculate runway—in one chart.
       </p>
 
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -247,7 +247,7 @@ const airstripFeatures = [
         <div>
           <div class="text-7xl text-coral-500 font-serif leading-none mb-4">"</div>
           <blockquote class="text-3xl text-gray-900 leading-[1.5] italic -mt-8">
-            I built Airstrip to forecast cash flow at Huntr, my B2C SaaS company. After 8 years of maintaining a spreadsheet that pulled from Baremetrics, QuickBooks, and Gusto; I finally made the leap and built the tool I actually needed.
+            I built Airstrip to calculate runway at Huntr, my B2C SaaS company. After 8 years of maintaining a spreadsheet that pulled from Baremetrics, QuickBooks, and Gusto; I finally made the leap and built the tool I actually needed.
           </blockquote>
           <p class="mt-6 text-gray-600">
             – Rennie Haylock, founder of <a href="https://huntr.co" target="_blank" class="text-coral-500 hover:underline">Huntr</a>
