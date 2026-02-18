@@ -719,6 +719,7 @@ export default function CashflowModel() {
     chartSettings: false,
     monthlyBreakdown: true,
     mrrMetrics: true,
+    annualSummary: true,
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(460);
@@ -1179,6 +1180,52 @@ export default function CashflowModel() {
 
     return data;
   }, [state, monthLabels]);
+
+  const annualSummary = useMemo(() => {
+    if (calculations.length === 0) return [];
+
+    let startYear, startMonth;
+    if (state.forecastStartDate) {
+      const [y, m] = state.forecastStartDate.split('-').map(Number);
+      startYear = y;
+      startMonth = m - 1;
+    } else {
+      const now = new Date();
+      startYear = now.getFullYear();
+      startMonth = now.getMonth();
+    }
+
+    // Group calculation months by calendar year
+    const yearMap = {};
+    calculations.forEach((calc, i) => {
+      const d = new Date(startYear, startMonth + i, 1);
+      const year = d.getFullYear();
+      if (!yearMap[year]) yearMap[year] = { year, months: [] };
+      yearMap[year].months.push(calc);
+    });
+
+    const sumMetrics = [
+      'mrr', 'additionalRevenue', 'annualPlanRevenue', 'capitalInjection',
+      'totalInflows', 'payroll', 'recurringExpenses', 'oneTimeExpenses',
+      'variableExpenses', 'refunds', 'estimatedTaxes', 'monthlyTaxableProfit',
+      'ownersDraw', 'owners401k', 'totalOutflows', 'netCashflow'
+    ];
+
+    return Object.values(yearMap).map(({ year, months }) => {
+      const monthCount = months.length;
+      const totals = {};
+      const averages = {};
+      sumMetrics.forEach(metric => {
+        totals[metric] = months.reduce((sum, m) => sum + (m[metric] || 0), 0);
+        averages[metric] = Math.round(totals[metric] / monthCount);
+        totals[metric] = Math.round(totals[metric]);
+      });
+      const endOfYearBalance = months[months.length - 1].cashBalance;
+      totals.ownersTakeHome = totals.ownersDraw + totals.owners401k;
+      averages.ownersTakeHome = Math.round(totals.ownersTakeHome / monthCount);
+      return { year, monthCount, totals, averages, endOfYearBalance };
+    });
+  }, [calculations, state.forecastStartDate]);
 
   return (
     <div className="h-screen bg-gray-50 flex overflow-hidden" onClick={() => setSelectedMonthIndex(null)}>
@@ -2433,7 +2480,7 @@ export default function CashflowModel() {
         </div>
 
         {/* MRR Metrics Table */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200 mb-4">
           <div
             className={`px-3 py-2.5 flex items-center justify-between cursor-pointer hover:bg-gray-50 ${expandedSections.mrrMetrics ? 'border-b border-gray-200' : ''}`}
             onClick={() => toggleSection('mrrMetrics')}
@@ -2509,6 +2556,255 @@ export default function CashflowModel() {
                 <td className="py-1 pl-3 pr-2 sticky left-0 z-10 relative bg-slate-300 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Total MRR</td>
                 {calculations.map((d, i) => (
                   <td key={i} className={`text-center py-1 px-1 cursor-default ${i === selectedMonthIndex ? 'bg-slate-800 text-white' : 'text-slate-800'}`}>{formatCurrency(d.mrr)}</td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          )}
+        </div>
+
+        {/* Annual Summary Table */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
+          <div
+            className={`px-3 py-2.5 flex items-center justify-between cursor-pointer hover:bg-gray-50 ${expandedSections.annualSummary ? 'border-b border-gray-200' : ''}`}
+            onClick={() => toggleSection('annualSummary')}
+          >
+            <h2 className="text-sm font-semibold text-gray-700">Annual Summary</h2>
+            {expandedSections.annualSummary ? <ChevronUp size={16} className="text-gray-500" /> : <ChevronDown size={16} className="text-gray-500" />}
+          </div>
+          {expandedSections.annualSummary && annualSummary.length > 0 && (
+          <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-2 pl-3 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 font-medium text-gray-600 min-w-[180px]">Category</th>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <th className="text-center py-2 px-1 font-medium min-w-[85px] text-gray-600 border-l border-gray-200">{ys.year} Total</th>
+                    <th className="text-center py-2 px-1 font-medium min-w-[85px] text-gray-600">{ys.year} Avg</th>
+                  </React.Fragment>
+                ))}
+              </tr>
+              <tr className="border-b bg-gray-50">
+                <th className="text-left py-1 pl-3 pr-2 sticky left-0 z-10 relative bg-gray-50 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 font-normal text-gray-400 text-[10px]"></th>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <th colSpan={2} className="text-center py-1 px-1 font-normal text-gray-400 text-[10px] border-l border-gray-200">{ys.monthCount === 12 ? 'Full year' : `${ys.monthCount} months`}</th>
+                  </React.Fragment>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {/* Inflows Section */}
+              <tr className="bg-green-50">
+                <td className="py-2 pl-3 pr-2 font-semibold text-green-700 sticky left-0 z-10 relative bg-green-50 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">INFLOWS</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="border-l border-gray-200"></td>
+                    <td></td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">MRR</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-green-600 border-l border-gray-200">{formatCurrency(ys.totals.mrr)}</td>
+                    <td className="text-center py-1 px-1 text-green-600">{formatCurrency(ys.averages.mrr)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              {state.additionalRevenue > 0 && (
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Additional Revenue</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-green-600 border-l border-gray-200">{formatCurrency(ys.totals.additionalRevenue)}</td>
+                    <td className="text-center py-1 px-1 text-green-600">{formatCurrency(ys.averages.additionalRevenue)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              )}
+              {state.annualPlanRevenue.length > 0 && (
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Annual Plan Revenue</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-green-600 border-l border-gray-200">{formatCurrency(ys.totals.annualPlanRevenue)}</td>
+                    <td className="text-center py-1 px-1 text-green-600">{formatCurrency(ys.averages.annualPlanRevenue)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              )}
+              {state.capitalInjections.length > 0 && (
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Capital Injection</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-green-600 border-l border-gray-200">{formatCurrency(ys.totals.capitalInjection)}</td>
+                    <td className="text-center py-1 px-1 text-green-600">{formatCurrency(ys.averages.capitalInjection)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              )}
+              <tr className="font-semibold bg-green-100">
+                <td className="py-1 pl-3 pr-2 sticky left-0 z-10 relative bg-green-100 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 text-green-700">Total Inflows</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-green-700 border-l border-gray-200">{formatCurrency(ys.totals.totalInflows)}</td>
+                    <td className="text-center py-1 px-1 text-green-700">{formatCurrency(ys.averages.totalInflows)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+
+              {/* Outflows Section */}
+              <tr className="bg-red-50">
+                <td className="py-2 pl-3 pr-2 font-semibold text-red-700 sticky left-0 z-10 relative bg-red-50 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">OUTFLOWS</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="border-l border-gray-200"></td>
+                    <td></td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              {state.employees.length > 0 && (
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Payroll (Fully Loaded)</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-red-600 border-l border-gray-200">{formatCurrency(ys.totals.payroll)}</td>
+                    <td className="text-center py-1 px-1 text-red-600">{formatCurrency(ys.averages.payroll)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              )}
+              {state.recurringExpenses.length > 0 && (
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Recurring Expenses</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-red-600 border-l border-gray-200">{formatCurrency(ys.totals.recurringExpenses)}</td>
+                    <td className="text-center py-1 px-1 text-red-600">{formatCurrency(ys.averages.recurringExpenses)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              )}
+              {state.oneTimeExpenses.length > 0 && (
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">One-Time Expenses</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-red-600 border-l border-gray-200">{formatCurrency(ys.totals.oneTimeExpenses)}</td>
+                    <td className="text-center py-1 px-1 text-red-600">{formatCurrency(ys.averages.oneTimeExpenses)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              )}
+              {state.variableExpenses.length > 0 && (
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Variable Expenses</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-red-600 border-l border-gray-200">{formatCurrency(ys.totals.variableExpenses)}</td>
+                    <td className="text-center py-1 px-1 text-red-600">{formatCurrency(ys.averages.variableExpenses)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              )}
+              {state.refunds.length > 0 && (
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Refunds</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-red-600 border-l border-gray-200">{formatCurrency(ys.totals.refunds)}</td>
+                    <td className="text-center py-1 px-1 text-red-600">{formatCurrency(ys.averages.refunds)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              )}
+              {(state.estimatedTaxes.length > 0 || state.taxMode === 'dynamic') && (
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Estimated Taxes</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-red-600 border-l border-gray-200">{formatCurrency(ys.totals.estimatedTaxes)}</td>
+                    <td className="text-center py-1 px-1 text-red-600">{formatCurrency(ys.averages.estimatedTaxes)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              )}
+              {state.taxMode === 'dynamic' && (
+              <tr>
+                <td className="py-1 pl-6 pr-2 text-xs italic sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 text-slate-500">Taxable Profit</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-slate-500 border-l border-gray-200">{formatCurrency(ys.totals.monthlyTaxableProfit)}</td>
+                    <td className="text-center py-1 px-1 text-slate-500">{formatCurrency(ys.averages.monthlyTaxableProfit)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              )}
+              {state.ownersDraw.length > 0 && (
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Owner's Draw</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-red-600 border-l border-gray-200">{formatCurrency(ys.totals.ownersDraw)}</td>
+                    <td className="text-center py-1 px-1 text-red-600">{formatCurrency(ys.averages.ownersDraw)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              )}
+              {state.owners401k.length > 0 && (
+              <tr>
+                <td className="py-1 pl-6 pr-2 sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Owner's 401k</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-red-600 border-l border-gray-200">{formatCurrency(ys.totals.owners401k)}</td>
+                    <td className="text-center py-1 px-1 text-red-600">{formatCurrency(ys.averages.owners401k)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              )}
+              {(state.ownersDraw.length > 0 || state.owners401k.length > 0) && (
+              <tr>
+                <td className="py-1 pl-6 pr-2 text-xs italic sticky left-0 z-10 relative bg-white after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 text-slate-500">Owner's Take Home</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-slate-500 border-l border-gray-200">{formatCurrency(ys.totals.ownersTakeHome)}</td>
+                    <td className="text-center py-1 px-1 text-slate-500">{formatCurrency(ys.averages.ownersTakeHome)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              )}
+              <tr className="font-semibold bg-red-100">
+                <td className="py-1 pl-3 pr-2 sticky left-0 z-10 relative bg-red-100 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200 text-red-700">Total Outflows</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className="text-center py-1 px-1 text-red-700 border-l border-gray-200">{formatCurrency(ys.totals.totalOutflows)}</td>
+                    <td className="text-center py-1 px-1 text-red-700">{formatCurrency(ys.averages.totalOutflows)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+
+              {/* Summary */}
+              <tr className="font-semibold bg-gray-100">
+                <td className="py-2 pl-3 pr-2 sticky left-0 z-10 relative bg-gray-100 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Net Cashflow</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className={`text-center py-2 px-1 font-semibold border-l border-gray-200 ${ys.totals.netCashflow >= 0 ? 'text-green-700' : 'text-red-700'}`}>{formatCurrency(ys.totals.netCashflow)}</td>
+                    <td className={`text-center py-2 px-1 font-semibold ${ys.averages.netCashflow >= 0 ? 'text-green-700' : 'text-red-700'}`}>{formatCurrency(ys.averages.netCashflow)}</td>
+                  </React.Fragment>
+                ))}
+              </tr>
+              <tr className="font-bold bg-blue-100">
+                <td className="py-2 pl-3 pr-2 sticky left-0 z-10 relative bg-blue-100 after:content-[''] after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-gray-200">Cash Balance</td>
+                {annualSummary.map((ys) => (
+                  <React.Fragment key={ys.year}>
+                    <td className={`text-center py-2 px-1 font-bold border-l border-gray-200 ${ys.endOfYearBalance >= 0 ? 'text-blue-700' : 'text-red-700'}`}>{formatCurrency(ys.endOfYearBalance)}</td>
+                    <td className="text-center py-2 px-1 text-[10px] font-normal text-gray-400 italic">End of Year</td>
+                  </React.Fragment>
                 ))}
               </tr>
             </tbody>
